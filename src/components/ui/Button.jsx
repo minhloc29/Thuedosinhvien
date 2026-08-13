@@ -8,7 +8,7 @@ export function PrimaryButton({ children, onClick, disabled, style, icon: Icon }
       disabled={disabled}
       style={{
         width: "100%", padding: "13px 16px", borderRadius: 12, border: "none",
-        background: disabled ? T.line : T.accent, color: disabled ? T.inkFaint : T.accentDeep,
+        background: disabled ? T.line : T.accent, color: disabled ? T.inkFaint : "#fff",
         fontFamily: F.display, fontWeight: 600, fontSize: 14.5,
         display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
         cursor: disabled ? "not-allowed" : "pointer", letterSpacing: 0.2, ...style,

@@ -5,11 +5,12 @@ import LandingPage from "./features/landing/LandingPage";
 import "./theme/global.css";
 
 // Landing page shows first; the app shell mounts once the visitor enters.
+// `entered` lives here so the app can hand back to the landing page (logo click).
 function Root() {
   const [entered, setEntered] = useState(false);
   return (
     <React.StrictMode>
-      {entered ? <App /> : <LandingPage onEnter={() => setEntered(true)} />}
+      {entered ? <App onExit={() => setEntered(false)} /> : <LandingPage onEnter={() => setEntered(true)} />}
     </React.StrictMode>
   );
 }

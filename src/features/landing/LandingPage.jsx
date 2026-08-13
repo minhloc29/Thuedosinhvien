@@ -65,7 +65,7 @@ function HeroProductCard() {
         <span style={{ fontFamily: F.body, fontSize: 12, color: T.inkFaint }}>/ ngày</span>
       </div>
       <div style={{ display: "flex", gap: 8 }}>
-        <a href="#categories" style={{ flex: 1, padding: "12px 0", borderRadius: 12, background: T.accent, color: T.accentDeep, textAlign: "center", fontFamily: F.display, fontWeight: 600, fontSize: 13.5, textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>Thuê ngay <ArrowRight size={15} /></a>
+        <a href="#categories" style={{ flex: 1, padding: "12px 0", borderRadius: 12, background: T.accent, color: "#fff", textAlign: "center", fontFamily: F.display, fontWeight: 600, fontSize: 13.5, textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>Thuê ngay <ArrowRight size={15} /></a>
         <a href="#how" style={{ padding: "12px 14px", borderRadius: 12, border: `1px solid ${T.line}`, color: T.ink, fontFamily: F.body, fontWeight: 500, fontSize: 13.5, textDecoration: "none", display: "flex", alignItems: "center" }}><Scale size={15} /></a>
       </div>
     </div>
@@ -103,7 +103,7 @@ export default function LandingPage({ onEnter }) {
             <a href="#how" style={{ fontFamily: F.body, fontSize: 13.5, color: T.inkSoft, textDecoration: "none" }}>Cách hoạt động</a>
             <a href="#categories" style={{ fontFamily: F.body, fontSize: 13.5, color: T.inkSoft, textDecoration: "none" }}>Danh mục</a>
             <a href="#value" style={{ fontFamily: F.body, fontSize: 13.5, color: T.inkSoft, textDecoration: "none" }}>Vì sao chúng tôi</a>
-            <button onClick={onEnter} style={{ padding: "11px 20px", borderRadius: 12, background: T.accent, color: T.accentDeep, border: "none", cursor: "pointer", fontFamily: F.display, fontWeight: 600, fontSize: 13.5, display: "flex", alignItems: "center", gap: 7 }}>
+            <button onClick={onEnter} style={{ padding: "11px 20px", borderRadius: 12, background: T.accent, color: "#fff", border: "none", cursor: "pointer", fontFamily: F.display, fontWeight: 600, fontSize: 13.5, display: "flex", alignItems: "center", gap: 7 }}>
               Vào ứng dụng <ArrowRight size={15} />
             </button>
           </div>
@@ -126,7 +126,7 @@ export default function LandingPage({ onEnter }) {
               Laptop, máy ảnh, máy chiếu từ sinh viên khác quanh bạn — giá theo ngày, minh bạch và được bảo vệ bởi điểm tin cậy.
             </p>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <button onClick={onEnter} style={{ padding: "15px 26px", borderRadius: 14, background: T.accent, color: T.accentDeep, border: "none", cursor: "pointer", fontFamily: F.display, fontWeight: 700, fontSize: 15.5, display: "flex", alignItems: "center", gap: 9 }}>
+              <button onClick={onEnter} style={{ padding: "15px 26px", borderRadius: 14, background: T.accent, color: "#fff", border: "none", cursor: "pointer", fontFamily: F.display, fontWeight: 700, fontSize: 15.5, display: "flex", alignItems: "center", gap: 9 }}>
                 Khám phá thiết bị <ArrowRight size={17} strokeWidth={2.5} />
               </button>
               <a href="#how" style={{ padding: "14px 24px", borderRadius: 14, border: `1px solid ${T.line}`, color: T.ink, fontFamily: F.body, fontWeight: 500, fontSize: 14.5, textDecoration: "none", display: "flex", alignItems: "center", gap: 8 }}>
@@ -234,7 +234,7 @@ export default function LandingPage({ onEnter }) {
             <p style={{ fontFamily: F.body, fontSize: 15, color: T.inkSoft, maxWidth: 480, margin: "0 auto 26px", lineHeight: 1.6 }}>
               Biến đồ dùng thừa thành thu nhập. Đăng tin miễn phí, quản lý yêu cầu ngay trong ứng dụng.
             </p>
-            <button onClick={onEnter} style={{ padding: "16px 30px", borderRadius: 14, background: T.accent, color: T.accentDeep, border: "none", cursor: "pointer", fontFamily: F.display, fontWeight: 700, fontSize: 15.5, display: "inline-flex", alignItems: "center", gap: 9 }}>
+            <button onClick={onEnter} style={{ padding: "16px 30px", borderRadius: 14, background: T.accent, color: "#fff", border: "none", cursor: "pointer", fontFamily: F.display, fontWeight: 700, fontSize: 15.5, display: "inline-flex", alignItems: "center", gap: 9 }}>
               Bắt đầu ngay <ArrowRight size={17} strokeWidth={2.5} />
             </button>
           </div>

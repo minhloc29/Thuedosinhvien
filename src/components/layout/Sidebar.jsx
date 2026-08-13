@@ -21,17 +21,21 @@ const ROLES = [
 ];
 
 // Primary navigation rail; switches between renter/owner modes.
-export default function Sidebar({ screen, setScreen, role, setRole, pendingCount, compareCount, onAdd }) {
+export default function Sidebar({ screen, setScreen, role, setRole, pendingCount, compareCount, onAdd, onExit }) {
   const items = role === "renter" ? RENTER_ITEMS : OWNER_ITEMS;
 
   return (
     <aside className="rm-sidebar" style={{ background: T.surface, borderRight: `1px solid ${T.line}`, padding: "24px 16px", display: "flex", flexDirection: "column" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 9, padding: "0 6px 26px" }}>
+      <button
+        onClick={onExit}
+        title="Về trang chủ"
+        style={{ display: "flex", alignItems: "center", gap: 9, padding: "0 6px 26px", background: "none", border: "none", cursor: "pointer", textAlign: "left" }}
+      >
         <div style={{ width: 30, height: 30, borderRadius: 9, background: T.accentBg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15 }}>
           🏷️
         </div>
         <span style={{ fontFamily: F.display, fontSize: 16.5, fontWeight: 700, color: T.ink }}>Thuê Đồ</span>
-      </div>
+      </button>
 
       <nav style={{ display: "flex", flexDirection: "column", gap: 3 }}>
         {items.map((it) => {

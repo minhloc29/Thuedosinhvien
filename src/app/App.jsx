@@ -23,7 +23,7 @@ const MAX_COMPARE = 3;
 
 // Application shell: owns navigation, filters, domain collections, and the
 // compare + handover (QR / return) flows, wiring the screens and modals together.
-export default function App() {
+export default function App({ onExit }) {
   const [screen, setScreen] = useState("home");
   const [role, setRole] = useState("renter");
   const [query, setQuery] = useState("");
@@ -107,7 +107,7 @@ export default function App() {
   return (
     <div style={{ background: T.bg, minHeight: "100vh", fontFamily: F.body }}>
       <div className="rm-shell">
-        <Sidebar screen={screen} setScreen={setScreen} role={role} setRole={setRole} pendingCount={pendingCount} compareCount={compareIds.length} onAdd={() => setAddModalOpen(true)} />
+        <Sidebar screen={screen} setScreen={setScreen} role={role} setRole={setRole} pendingCount={pendingCount} compareCount={compareIds.length} onAdd={() => setAddModalOpen(true)} onExit={onExit} />
         <main className="rm-main" style={{ padding: "28px 32px 90px", maxWidth: 1080, margin: "0 auto", width: "100%" }}>
           {screen === "detail" && (
             <button

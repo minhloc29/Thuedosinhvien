@@ -17,7 +17,7 @@ export function CompareBar({ ids, onOpen, onClear }) {
     }}>
       <span style={{ fontFamily: F.body, fontSize: 13, color: T.ink }}>{ids.length} sản phẩm đã chọn để so sánh</span>
       <button onClick={onClear} style={{ background: "none", border: "none", color: T.inkSoft, fontFamily: F.body, fontSize: 12, cursor: "pointer" }}>Xoá</button>
-      <PrimaryButton onClick={onOpen} icon={Scale} style={{ width: "auto", padding: "9px 16px", background: T.accent, color: T.accentDeep }}>So sánh ngay</PrimaryButton>
+      <PrimaryButton onClick={onOpen} icon={Scale} style={{ width: "auto", padding: "9px 16px", background: T.accent, color: "#fff" }}>So sánh ngay</PrimaryButton>
     </div>
   );
 }
