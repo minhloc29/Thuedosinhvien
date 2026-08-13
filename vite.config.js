@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
-  // Deployed to GitHub Pages under the repo sub-path; absolute asset URLs
-  // (the default) would 404 there. Keep in sync with the repo name.
-  base: "/Thuedosinhvien/",
+  // Relative base so the build works wherever it's hosted: at the root
+  // (Vercel) or under a repo sub-path (GitHub Pages). No hardcoded path.
+  base: "./",
 });
