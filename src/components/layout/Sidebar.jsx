@@ -71,7 +71,7 @@ export default function Sidebar({ screen, setScreen, role, setRole, pendingCount
 
       {role === "owner" && (
         <SecondaryButton onClick={onAdd} icon={Plus} style={{ marginTop: 14, width: "100%" }}>
-          Đăng thiết bị
+          Đăng đồ
         </SecondaryButton>
       )}
       {compareCount > 0 && (

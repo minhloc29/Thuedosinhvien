@@ -38,10 +38,10 @@ export default function AddEquipmentModal({ onClose, onSubmit }) {
 
   return (
     <Modal onClose={onClose} width={480}>
-      <h2 style={{ fontFamily: F.display, fontSize: 18, fontWeight: 700, color: T.ink, margin: "0 0 16px" }}>Đăng thiết bị cho thuê</h2>
+      <h2 style={{ fontFamily: F.display, fontSize: 18, fontWeight: 700, color: T.ink, margin: "0 0 16px" }}>Đăng đồ cho thuê</h2>
 
-      <label style={label}>Tên thiết bị</label>
-      <input style={field} value={form.name} onChange={update("name")} placeholder="VD: MacBook Air M2" />
+      <label style={label}>Tên món đồ</label>
+      <input style={field} value={form.name} onChange={update("name")} placeholder="VD: MacBook Air M2, máy khoan, xe đạp..." />
 
       <label style={{ ...label, display: "block", marginTop: 14 }}>Danh mục</label>
       <select style={field} value={form.category} onChange={update("category")}>

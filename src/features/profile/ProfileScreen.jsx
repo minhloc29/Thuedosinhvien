@@ -50,7 +50,7 @@ export default function ProfileScreen({ role, setRole, listingsCount, bookingsCo
             })}
           </div>
           <p style={{ fontFamily: F.body, fontSize: 11.5, color: T.inkFaint, marginTop: 14, lineHeight: 1.6 }}>
-            Chuyển sang "Chủ đồ" để đăng thiết bị cho thuê và duyệt yêu cầu từ người thuê khác.
+            Chuyển sang "Chủ đồ" để đăng món đồ cho thuê và duyệt yêu cầu từ người thuê khác.
           </p>
         </Card>
       </div>

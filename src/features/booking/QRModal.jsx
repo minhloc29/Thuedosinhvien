@@ -22,7 +22,7 @@ export function QRModal({ booking, onClose, onConfirm }) {
         <p style={{ fontFamily: F.display, fontSize: 15, fontWeight: 600, color: T.ink, margin: "0 0 4px" }}>Xác nhận nhận đồ</p>
         <p style={{ fontFamily: F.body, fontSize: 12, color: T.inkFaint, margin: "0 0 16px" }}>Đơn #{booking.id.slice(-5).toUpperCase()} · {booking.product.name}</p>
         <QRPattern />
-        <p style={{ fontFamily: F.body, fontSize: 11.5, color: T.inkFaint, margin: "14px 0 18px" }}>Chủ thiết bị quét mã này để xác nhận bàn giao.</p>
+        <p style={{ fontFamily: F.body, fontSize: 11.5, color: T.inkFaint, margin: "14px 0 18px" }}>Chủ món đồ quét mã này để xác nhận bàn giao.</p>
         <PrimaryButton onClick={onConfirm} icon={Check}>Đã quét — xác nhận nhận đồ</PrimaryButton>
       </div>
     </Modal>

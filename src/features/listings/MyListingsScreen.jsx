@@ -12,17 +12,17 @@ export default function MyListingsScreen({ listings, onAdd }) {
     <div>
       <PageHeader
         title="Tin đăng của tôi"
-        subtitle="Thiết bị bạn đang cho sinh viên khác thuê."
-        right={<PrimaryButton onClick={onAdd} icon={Plus} style={{ width: "auto", padding: "11px 18px" }}>Đăng thiết bị</PrimaryButton>}
+        subtitle="Món đồ bạn đang cho sinh viên khác thuê."
+        right={<PrimaryButton onClick={onAdd} icon={Plus} style={{ width: "auto", padding: "11px 18px" }}>Đăng món đồ</PrimaryButton>}
       />
       {listings.length === 0 ? (
         <div style={{ textAlign: "center", marginTop: 50 }}>
           <p style={{ fontSize: 36, marginBottom: 10 }}>🏷️</p>
-          <p style={{ fontFamily: F.display, fontSize: 15.5, fontWeight: 600, color: T.ink, margin: 0 }}>Chưa có thiết bị nào cho thuê</p>
+          <p style={{ fontFamily: F.display, fontSize: 15.5, fontWeight: 600, color: T.ink, margin: 0 }}>Chưa có món đồ nào cho thuê</p>
           <p style={{ fontFamily: F.body, fontSize: 12.5, color: T.inkFaint, margin: "6px 0 16px" }}>
-            Đăng thiết bị đầu tiên để bắt đầu kiếm tiền từ đồ không dùng tới.
+            Đăng món đồ đầu tiên để bắt đầu kiếm tiền từ đồ không dùng tới.
           </p>
-          <PrimaryButton onClick={onAdd} icon={Plus} style={{ maxWidth: 220, margin: "0 auto" }}>Đăng thiết bị cho thuê</PrimaryButton>
+          <PrimaryButton onClick={onAdd} icon={Plus} style={{ maxWidth: 220, margin: "0 auto" }}>Đăng đồ cho thuê</PrimaryButton>
         </div>
       ) : (
         <div className="rm-grid">

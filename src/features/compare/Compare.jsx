@@ -35,7 +35,7 @@ const COMPARE_ROWS = [
 export function CompareModal({ products, onClose, onOpenDetail }) {
   return (
     <Modal onClose={onClose} width={720}>
-      <h2 style={{ fontFamily: F.display, fontSize: 18, fontWeight: 700, color: T.ink, margin: "0 0 16px" }}>So sánh thiết bị</h2>
+      <h2 style={{ fontFamily: F.display, fontSize: 18, fontWeight: 700, color: T.ink, margin: "0 0 16px" }}>So sánh món đồ</h2>
       <div className="rm-compare-grid" style={{ gridTemplateColumns: `140px repeat(${products.length}, 1fr)` }}>
         <div />
         {products.map((p) => (

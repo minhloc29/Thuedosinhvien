@@ -9,7 +9,7 @@ import { X, Check } from "lucide-react";
 export default function RequestsScreen({ requests, onRespond }) {
   return (
     <div>
-      <PageHeader title="Yêu cầu thuê" subtitle="Duyệt các yêu cầu thuê thiết bị của bạn." />
+      <PageHeader title="Yêu cầu thuê" subtitle="Duyệt các yêu cầu thuê món đồ của bạn." />
       {requests.length === 0 ? (
         <div style={{ textAlign: "center", marginTop: 60 }}>
           <p style={{ fontSize: 36, marginBottom: 10 }}>📭</p>

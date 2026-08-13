@@ -60,11 +60,11 @@ export default function HomeScreen({ products, onOpen, query, setQuery, catFilte
         })}
       </div>
 
-      <p style={{ fontFamily: F.body, fontSize: 12, color: T.inkFaint, margin: "0 0 12px" }}>{products.length} thiết bị phù hợp</p>
+      <p style={{ fontFamily: F.body, fontSize: 12, color: T.inkFaint, margin: "0 0 12px" }}>{products.length} món đồ phù hợp</p>
 
       {products.length === 0 ? (
         <p style={{ fontFamily: F.body, fontSize: 13, color: T.inkFaint, textAlign: "center", marginTop: 40 }}>
-          Không tìm thấy thiết bị phù hợp. Thử đổi bộ lọc.
+          Không tìm thấy món đồ phù hợp. Thử đổi bộ lọc.
         </p>
       ) : (
         <div className="rm-grid">

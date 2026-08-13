@@ -13,12 +13,12 @@ const badgeStatus = (b) =>
 export default function MyRentalsScreen({ bookings, onOpenQR, onOpenReturn }) {
   return (
     <div>
-      <PageHeader title="Đơn thuê của tôi" subtitle="Theo dõi trạng thái các thiết bị bạn đã thuê." />
+      <PageHeader title="Đơn thuê của tôi" subtitle="Theo dõi trạng thái các món đồ bạn đã thuê." />
       {bookings.length === 0 ? (
         <div style={{ textAlign: "center", marginTop: 60 }}>
           <p style={{ fontSize: 36, marginBottom: 10 }}>📦</p>
           <p style={{ fontFamily: F.display, fontSize: 15.5, fontWeight: 600, color: T.ink, margin: 0 }}>Chưa có đơn thuê nào</p>
-          <p style={{ fontFamily: F.body, fontSize: 12.5, color: T.inkFaint, marginTop: 6 }}>Tìm thiết bị ở trang chủ để bắt đầu thuê.</p>
+          <p style={{ fontFamily: F.body, fontSize: 12.5, color: T.inkFaint, marginTop: 6 }}>Tìm món đồ ở trang chủ để bắt đầu thuê.</p>
         </div>
       ) : (
         <div className="rm-grid">
