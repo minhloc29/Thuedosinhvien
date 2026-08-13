@@ -13,7 +13,7 @@ import {
 
 const KPIS = [
   { icon: BadgePercent, value: "98%", label: "Tiết kiệm tới khi thuê thay vì mua", delta: "+21%", accent: T.accent },
-  { icon: Package, value: "2.400+", label: "Thiết bị cho thuê sẵn sàng", delta: "+180/Tuần", accent: T.teal },
+  { icon: Package, value: "2.400+", label: "Món đồ cho thuê sẵn sàng", delta: "+180/Tuần", accent: T.teal },
   { icon: Star, value: "4.9", label: "Đánh giá trung bình từ người thuê", delta: "★★★★★", accent: T.green },
   { icon: Timer, value: "30'", label: "Phản hồi trung bình từ chủ đồ", delta: "< 60'", accent: T.accentDeep },
 ];
@@ -75,7 +75,7 @@ function HeroProductCard() {
 // --- Sections -----------------------------------------------------------------
 
 const STEPS = [
-  { n: "01", icon: Search, title: "Tìm thiết bị gần bạn", desc: "Khoan mua. Tìm laptop, máy ảnh, máy chiếu quanh khu bạn ở với bộ lọc giá, khoảng cách và danh mục." },
+  { n: "01", icon: Search, title: "Tìm đồ gần bạn", desc: "Khoan mua. Tìm mọi thứ bạn cần quanh khu bạn ở — từ laptop, máy ảnh đến đồ gia dụng — với bộ lọc giá, khoảng cách và danh mục." },
   { n: "02", icon: Check, title: "Thuê theo ngày", desc: "Chọn ngày trên lịch trực tiếp, thanh toán minh bạch — giá theo ngày, tiền cọc hoàn lại ngay khi trả." },
   { n: "03", icon: ShieldCheck, title: "Nhận đồ có kiểm tra", desc: "Quét mã QR khi nhận, checklist tình trạng từng phụ kiện rõ ràng, an tâm suốt thời gian sử dụng." },
   { n: "04", icon: Star, title: "Trả đồ đúng hẹn", desc: "Chấm điểm chủ đồ, xác nhận trả nhanh, tiền cọc về trong ngày. Lặp lại khi cần tiếp." },
@@ -83,8 +83,8 @@ const STEPS = [
 
 const VALUES = [
   { icon: ShieldCheck, title: "Điểm tin cậy rõ ràng", desc: "Chủ đồ được xác minh danh tính, điểm tin cậy theo lượt cho thuê và tỉ lệ phản hồi thực tế.", color: T.teal },
-  { icon: Wallet, title: "Tiết kiệm tới 98%", desc: "Mua mới 26 triệu, thuê 90 nghìn/ngày. Chỉ trả cho đúng thời gian bạn thực sự cần.", color: T.accentDeep },
-  { icon: QrCode, title: "Bàn giao an toàn", desc: "Quét mã QR khi nhận & trả, checklist tình trạng thiết bị và phụ kiện — không tranh cãi khi kết thúc.", color: T.green },
+  { icon: Wallet, title: "Tiết kiệm tới 98%", desc: "Chỉ trả tiền cho đúng thời gian bạn thực sự cần món đồ — thay vì bỏ ra cả giá mua cho thứ dùng vài ngày.", color: T.accentDeep },
+  { icon: QrCode, title: "Bàn giao an toàn", desc: "Quét mã QR khi nhận & trả, checklist tình trạng món đồ và phụ kiện — không tranh cãi khi kết thúc.", color: T.green },
 ];
 
 // --- Component ----------------------------------------------------------------
@@ -116,18 +116,18 @@ export default function LandingPage({ onEnter }) {
           <div>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: T.surface, border: `1px solid ${T.line}`, padding: "7px 14px", borderRadius: 30, marginBottom: 22 }}>
               <Sparkles size={14} color={T.accent} />
-              <span style={{ fontFamily: F.body, fontSize: 12.5, color: T.inkSoft }}>Marketplace cho thuê thiết bị công nghệ giữa sinh viên</span>
+              <span style={{ fontFamily: F.body, fontSize: 12.5, color: T.inkSoft }}>Marketplace cho thuê đồ giữa sinh viên</span>
             </div>
             <h1 style={{ fontFamily: F.display, fontSize: "clamp(40px, 6vw, 60px)", fontWeight: 700, lineHeight: 1.05, margin: "0 0 20px", letterSpacing: -1 }}>
               Đừng mua.<br />
               <span style={{ color: T.accent }}>Thuê thôi.</span>
             </h1>
             <p style={{ fontFamily: F.body, fontSize: 17, color: T.inkSoft, maxWidth: 480, margin: "0 0 28px", lineHeight: 1.6 }}>
-              Laptop, máy ảnh, máy chiếu từ sinh viên khác quanh bạn — giá theo ngày, minh bạch và được bảo vệ bởi điểm tin cậy.
+              Từ laptop, máy ảnh đến đồ gia dụng, dụng cụ thể thao — thuê của người khác quanh bạn, giá minh bạch và được bảo vệ bởi điểm tin cậy.
             </p>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <button onClick={onEnter} style={{ padding: "15px 26px", borderRadius: 14, background: T.accent, color: "#fff", border: "none", cursor: "pointer", fontFamily: F.display, fontWeight: 700, fontSize: 15.5, display: "flex", alignItems: "center", gap: 9 }}>
-                Khám phá thiết bị <ArrowRight size={17} strokeWidth={2.5} />
+                Khám phá đồ để thuê <ArrowRight size={17} strokeWidth={2.5} />
               </button>
               <a href="#how" style={{ padding: "14px 24px", borderRadius: 14, border: `1px solid ${T.line}`, color: T.ink, fontFamily: F.body, fontWeight: 500, fontSize: 14.5, textDecoration: "none", display: "flex", alignItems: "center", gap: 8 }}>
                 Xem cách hoạt động
@@ -229,7 +229,7 @@ export default function LandingPage({ onEnter }) {
           <div style={{ position: "relative" }}>
             <p style={{ fontSize: 36, margin: "0 0 12px" }}>📦</p>
             <h2 style={{ fontFamily: F.display, fontSize: "clamp(26px, 4vw, 38px)", fontWeight: 700, color: T.ink, margin: "0 0 12px", letterSpacing: -0.5 }}>
-              Có thiết bị đang nằm không? Hãy cho thuê.
+              Có đồ đang nằm không? Hãy cho thuê.
             </h2>
             <p style={{ fontFamily: F.body, fontSize: 15, color: T.inkSoft, maxWidth: 480, margin: "0 auto 26px", lineHeight: 1.6 }}>
               Biến đồ dùng thừa thành thu nhập. Đăng tin miễn phí, quản lý yêu cầu ngay trong ứng dụng.

@@ -18,7 +18,7 @@ export default function AddEquipmentModal({ onClose, onSubmit }) {
 
   const submit = () => {
     if (!form.name.trim() || !form.price || Number(form.price) <= 0) {
-      setError("Nhập tên thiết bị và giá thuê hợp lệ.");
+      setError("Nhập tên món đồ và giá thuê hợp lệ.");
       return;
     }
     setError("");

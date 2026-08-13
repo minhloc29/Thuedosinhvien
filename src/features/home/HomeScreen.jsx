@@ -16,7 +16,7 @@ export default function HomeScreen({ products, onOpen, query, setQuery, catFilte
           Cần dùng vài ngày?<br />Đừng mua — thuê thôi.
         </h1>
         <p style={{ fontFamily: F.body, fontSize: 13, color: T.inkSoft, margin: "8px 0 0", maxWidth: 480 }}>
-          Thuê laptop, máy ảnh, máy chiếu từ sinh viên khác quanh bạn — giá theo ngày, tiết kiệm tới 98% so với mua mới.
+          Thuê đồ từ người khác quanh bạn — giá theo ngày, tiết kiệm tới 98% so với mua mới.
         </p>
       </div>
 
@@ -28,7 +28,7 @@ export default function HomeScreen({ products, onOpen, query, setQuery, catFilte
           <Search size={16} color={T.inkFaint} />
           <input
             value={query} onChange={(e) => setQuery(e.target.value)}
-            placeholder="Tìm laptop, máy ảnh, điện thoại..."
+            placeholder="Tìm đồ bạn cần..."
             style={{ border: "none", outline: "none", flex: 1, fontFamily: F.body, fontSize: 13.5, background: "transparent", color: T.ink }}
           />
         </div>
