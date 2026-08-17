@@ -1,259 +1,493 @@
+import { useState } from "react";
 import { T, F } from "../../theme/tokens";
-import { CATS } from "../../data/categories";
 import { money } from "../../utils/format";
-import { PRODUCTS } from "../../data/products";
 import {
-  Search, ShieldCheck, BadgePercent, Timer, ArrowRight, Star, MapPin,
-  Scale, Check, Sparkles, Wallet, Package, QrCode,
+  Search, ShieldCheck, Timer, ArrowRight, MapPin,
+  Check, Sparkles, Wallet, Boxes, Microscope, Cpu, CircuitBoard,
+  GraduationCap, BadgeCheck, PackageCheck,
 } from "lucide-react";
 
-// --- KPI tiles ---------------------------------------------------------------
-// Hero numbers + stat tiles. Colors follow brand tokens; value is the figure,
-// label names it, delta (when present) carries movement.
+// =====================================================================
+// LabShare — landing page (MVP).
+//
+// Job: turn a student who *has a project* into someone who *leaves a
+// rental need / registers interest*. Everything funnels to validation
+// (describe project → pick kit → register to rent → willing to deposit)
+// rather than to a big catalog. Forms collect into local state only for
+// now; a backend can subscribe later.
+// =====================================================================
 
-const KPIS = [
-  { icon: BadgePercent, value: "98%", label: "Tiết kiệm tới khi thuê thay vì mua", delta: "+21%", accent: T.accent },
-  { icon: Package, value: "2.400+", label: "Món đồ cho thuê sẵn sàng", delta: "+180/Tuần", accent: T.teal },
-  { icon: Star, value: "4.9", label: "Đánh giá trung bình từ người thuê", delta: "★★★★★", accent: T.green },
-  { icon: Timer, value: "30'", label: "Phản hồi trung bình từ chủ đồ", delta: "< 60'", accent: T.accentDeep },
+// --- Featured kits (by need, not by model number) ----------------------
+
+const KITS = [
+  { emoji: "🛠️", name: "Embedded Starter Kit", items: ["STM32 + Debugger + Power Supply"], price: 50000, grad: [T.accentBg, T.tealBg] },
+  { emoji: "📡", name: "IoT Kit", items: ["ESP32 + Sensor + Power Supply + Programmer"], price: 40000, grad: [T.tealBg, T.accentBg] },
+  { emoji: "⚡", name: "Electronics Lab Kit", items: ["Oscilloscope + Function Generator + Power Supply"], price: 80000, grad: [T.accentBg, T.accentBg] },
+  { emoji: "🤖", name: "Robotics Kit", items: ["Motor + Driver + MCU + Sensor"], price: 60000, grad: [T.tealBg, T.tealBg] },
 ];
 
-function KpiTile({ icon: Icon, value, label, delta, accent }) {
-  return (
-    <div style={{ background: T.surface, border: `1px solid ${T.line}`, borderRadius: 16, padding: "22px 20px", display: "flex", flexDirection: "column", gap: 8 }}>
-      <Icon size={20} color={accent} strokeWidth={2} />
-      <span style={{ fontFamily: F.display, fontSize: 40, fontWeight: 700, color: T.ink, lineHeight: 1, letterSpacing: -0.5 }}>{value}</span>
-      <span style={{ fontFamily: F.body, fontSize: 12.5, color: T.inkSoft, lineHeight: 1.4 }}>{label}</span>
-      {delta && <span style={{ fontFamily: F.mono, fontSize: 11, fontWeight: 600, color: T.green }}>{delta}</span>}
-    </div>
-  );
-}
+// --- Suggested kit (the "AI" result, shown after describing a project) --
 
-// --- Hero right-side: featured product mock card -----------------------------
+const SUGGESTED = [
+  { name: "STM32 Development Kit", icon: Cpu, price: 20000 },
+  { name: "Oscilloscope", icon: Microscope, price: 40000 },
+  { name: "DC Power Supply", icon: PackageCheck, price: 25000 },
+];
 
-const FEATURED = PRODUCTS.find((p) => p.id === "p2"); // MacBook Air M2
-
-function HeroProductCard() {
-  const badges = [
-    { icon: ShieldCheck, text: "Chủ đã xác minh", color: T.teal },
-    { icon: BadgePercent, text: `Tiết kiệm ~${Math.round((1 - FEATURED.price * 5 / FEATURED.buyPrice) * 100)}%`, color: T.accentDeep },
-  ];
-  return (
-    <div style={{ background: T.surface, border: `1px solid ${T.line}`, borderRadius: 20, padding: 22, boxShadow: "0 24px 60px rgba(32,26,21,0.20)", width: "100%", maxWidth: 360 }}>
-      <div style={{ height: 150, borderRadius: 14, background: `linear-gradient(135deg, ${T.accentBg}, ${T.tealBg})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 64, marginBottom: 14 }}>
-        {FEATURED.emoji}
-      </div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-        <p style={{ fontFamily: F.display, fontSize: 16, fontWeight: 700, color: T.ink, margin: 0 }}>{FEATURED.name}</p>
-        <div style={{ display: "flex", alignItems: "center", gap: 3 }}>
-          <Star size={13} fill={T.accent} color={T.accent} />
-          <span style={{ fontFamily: F.body, fontSize: 12, color: T.inkSoft, fontWeight: 600 }}>{FEATURED.rating}</span>
-        </div>
-      </div>
-      <p style={{ fontFamily: F.body, fontSize: 12, color: T.inkFaint, margin: "0 0 12px", display: "flex", alignItems: "center", gap: 5 }}>
-        <MapPin size={13} /> {FEATURED.location} · cách bạn {FEATURED.distance}
-      </p>
-      <div style={{ display: "flex", gap: 7, marginBottom: 16, flexWrap: "wrap" }}>
-        {badges.map((b, i) => (
-          <span key={i} style={{ display: "flex", alignItems: "center", gap: 5, fontFamily: F.body, fontSize: 11, color: b.color, background: T.bg, padding: "5px 9px", borderRadius: 20 }}>
-            <b.icon size={12} strokeWidth={2.2} /> {b.text}
-          </span>
-        ))}
-      </div>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 5, marginBottom: 14 }}>
-        <span style={{ fontFamily: F.mono, fontSize: 26, fontWeight: 700, color: T.ink }}>{money(FEATURED.price)}</span>
-        <span style={{ fontFamily: F.body, fontSize: 12, color: T.inkFaint }}>/ ngày</span>
-      </div>
-      <div style={{ display: "flex", gap: 8 }}>
-        <a href="#categories" style={{ flex: 1, padding: "12px 0", borderRadius: 12, background: T.accent, color: "#fff", textAlign: "center", fontFamily: F.display, fontWeight: 600, fontSize: 13.5, textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>Thuê ngay <ArrowRight size={15} /></a>
-        <a href="#how" style={{ padding: "12px 14px", borderRadius: 12, border: `1px solid ${T.line}`, color: T.ink, fontFamily: F.body, fontWeight: 500, fontSize: 13.5, textDecoration: "none", display: "flex", alignItems: "center" }}><Scale size={15} /></a>
-      </div>
-    </div>
-  );
-}
-
-// --- Sections -----------------------------------------------------------------
+// --- How it works ------------------------------------------------------
 
 const STEPS = [
-  { n: "01", icon: Search, title: "Tìm đồ gần bạn", desc: "Khoan mua. Tìm mọi thứ bạn cần quanh khu bạn ở — từ laptop, máy ảnh đến đồ gia dụng — với bộ lọc giá, khoảng cách và danh mục." },
-  { n: "02", icon: Check, title: "Thuê theo ngày", desc: "Chọn ngày trên lịch trực tiếp, thanh toán minh bạch — giá theo ngày, tiền cọc hoàn lại ngay khi trả." },
-  { n: "03", icon: ShieldCheck, title: "Nhận đồ có kiểm tra", desc: "Quét mã QR khi nhận, checklist tình trạng từng phụ kiện rõ ràng, an tâm suốt thời gian sử dụng." },
-  { n: "04", icon: Star, title: "Trả đồ đúng hẹn", desc: "Chấm điểm chủ đồ, xác nhận trả nhanh, tiền cọc về trong ngày. Lặp lại khi cần tiếp." },
+  { n: "①", icon: GraduationCap, title: "Mô tả project", desc: "Kể chúng tôi nghe bạn đang làm gì — không cần biết tên thiết bị." },
+  { n: "②", icon: CircuitBoard, title: "Chọn kit", desc: "Nhận gợi ý bộ thiết bị phù hợp, chọn đúng thứ mình cần." },
+  { n: "③", icon: MapPin, title: "Nhận tại điểm gần trường", desc: "Nhận thiết bị đã được kiểm tra, niêm phong tại điểm nhận/trả." },
+  { n: "④", icon: Check, title: "Làm xong → trả → nhận cọc", desc: "Trả đúng hẹn, checklist tình trạng rõ ràng, tiền cọc về ngay." },
 ];
 
-const VALUES = [
-  { icon: ShieldCheck, title: "Điểm tin cậy rõ ràng", desc: "Chủ đồ được xác minh danh tính, điểm tin cậy theo lượt cho thuê và tỉ lệ phản hồi thực tế.", color: T.teal },
-  { icon: Wallet, title: "Tiết kiệm tới 98%", desc: "Chỉ trả tiền cho đúng thời gian bạn thực sự cần món đồ — thay vì bỏ ra cả giá mua cho thứ dùng vài ngày.", color: T.accentDeep },
-  { icon: QrCode, title: "Bàn giao an toàn", desc: "Quét mã QR khi nhận & trả, checklist tình trạng món đồ và phụ kiện — không tranh cãi khi kết thúc.", color: T.green },
+// --- Trust checklist ---------------------------------------------------
+
+const TRUST = [
+  "Kiểm tra tình trạng trước khi cho thuê",
+  "Phân hạng thiết bị A/B",
+  "Video test trước khi bàn giao",
+  "Niêm phong thiết bị",
+  "Đặt cọc rõ ràng",
+  "Điểm nhận/trả xác định",
 ];
 
-// --- Component ----------------------------------------------------------------
+// --- Final validation form options -------------------------------------
+
+const SCHOOLS = ["HUST", "NEU", "UET", "PTIT", "Khác"];
+const MAJORS = ["Điện - Điện tử", "Cơ khí", "CNTT", "Tự động hóa", "Khác"];
+const EQUIP_NEED = ["Tôi chưa biết", "STM32 / MCU", "Oscilloscope", "Power Supply", "IoT / ESP32", "Khác"];
+const DURATIONS = ["1–3 ngày", "1 tuần", "2–4 tuần", "> 1 tháng"];
+const BUDGETS = ["< 50k/ngày", "50–100k/ngày", "100–200k/ngày", "> 200k/ngày"];
+
+// --- Shared bits -------------------------------------------------------
+
+const Section = ({ kicker, title, sub, children, id, max = 1080, center = true }) => (
+  <section id={id} style={{ maxWidth: max, margin: "0 auto", padding: "84px 24px 0" }}>
+    <div style={{ textAlign: center ? "center" : "left", maxWidth: 560, margin: center ? "0 auto 40px" : "0 0 32px" }}>
+      {kicker && <p style={{ fontFamily: F.mono, fontSize: 12, color: T.accentDeep, letterSpacing: 1.5, textTransform: "uppercase", margin: "0 0 10px" }}>{kicker}</p>}
+      <h2 style={{ fontFamily: F.display, fontSize: "clamp(26px, 3.4vw, 34px)", fontWeight: 700, color: T.ink, margin: "0 0 12px", letterSpacing: -0.5 }}>{title}</h2>
+      {sub && <p style={{ fontFamily: F.body, fontSize: 15, color: T.inkSoft, margin: 0, lineHeight: 1.6 }}>{sub}</p>}
+    </div>
+    {children}
+  </section>
+);
+
+const Card = ({ children, style = {} }) => (
+  <div style={{ background: T.surface, border: `1px solid ${T.line}`, borderRadius: 18, padding: 24, ...style }}>{children}</div>
+);
+
+const Chip = ({ children }) => (
+  <span style={{ display: "inline-flex", alignItems: "center", gap: 6, background: T.surface, border: `1px solid ${T.line}`, padding: "7px 13px", borderRadius: 24, fontFamily: F.mono, fontSize: 11.5, color: T.inkSoft }}>{children}</span>
+);
+
+// Primary CTA button (solid terracotta) and Ghost (outline).
+const Primary = ({ children, onClick, big, type }) => (
+  <button type={type} onClick={onClick} style={{ padding: big ? "15px 26px" : "12px 20px", borderRadius: 14, background: T.accent, color: "#fff", border: "none", cursor: "pointer", fontFamily: F.display, fontWeight: 700, fontSize: big ? 15.5 : 14, display: "inline-flex", alignItems: "center", gap: 8 }}>{children}</button>
+);
+
+const Ghost = ({ children, onClick, type }) => (
+  <button type={type} onClick={onClick} style={{ padding: "12px 20px", borderRadius: 14, border: `1px solid ${T.line}`, background: "transparent", color: T.ink, cursor: "pointer", fontFamily: F.body, fontWeight: 600, fontSize: 14, display: "inline-flex", alignItems: "center", gap: 8 }}>{children}</button>
+);
+
+// Small shared styled <select> + <input> + <textarea>.
+const fieldBase = {
+  width: "100%", background: T.bg, border: `1px solid ${T.line}`, borderRadius: 12,
+  padding: "12px 14px", fontFamily: F.body, fontSize: 14, color: T.ink, outline: "none",
+};
+const FieldSelect = ({ value, onChange, options }) => (
+  <select value={value} onChange={onChange} style={{ ...fieldBase, appearance: "auto", cursor: "pointer" }}>
+    {options.map((o) => <option key={o} value={o}>{o}</option>)}
+  </select>
+);
+
+const RadioGroup = ({ legend, value, onChange, options }) => (
+  <fieldset style={{ border: "none", margin: 0, padding: 0 }}>
+    <legend style={{ fontFamily: F.body, fontSize: 12.5, color: T.inkSoft, marginBottom: 10 }}>{legend}</legend>
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8 }}>
+      {options.map((o) => {
+        const on = value === o;
+        return (
+          <button key={o} type="button" onClick={() => onChange(o)} style={{
+            padding: "11px 12px", borderRadius: 11, cursor: "pointer", fontFamily: F.body, fontSize: 13,
+            fontWeight: 600, color: on ? "#fff" : T.inkSoft, background: on ? T.accent : T.bg,
+            border: `1px solid ${on ? T.accent : T.line}`, textAlign: "left",
+          }}>
+            {on ? "● " : "○ "}{o}
+          </button>
+        );
+      })}
+    </div>
+  </fieldset>
+);
+
+// =====================================================================
+// Component
+// =====================================================================
 
 export default function LandingPage({ onEnter }) {
+  // AI suggest section state
+  const [desc, setDesc] = useState("");
+  const [suggested, setSuggested] = useState(false);
+
+  // Final validation form state
+  const [form, setForm] = useState({ school: "HUST", major: "Điện - Điện tử", project: "", equip: "Tôi chưa biết", duration: "", budget: "" });
+  const [registered, setRegistered] = useState(false);
+
+  const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+  const handleSuggest = (e) => {
+    e.preventDefault();
+    if (!desc.trim()) return;
+    setSuggested(true);
+  };
+
+  const handleRegister = (e) => {
+    e.preventDefault();
+    // MVP: collect locally — log so a backend can subscribe later.
+    console.log("LabShare nhu cầu thuê:", form);
+    setRegistered(true);
+  };
+
+  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: typeof e === "object" ? e.target.value : e }));
+
   return (
     <div style={{ minHeight: "100vh", background: T.bg, fontFamily: F.body, color: T.ink }}>
       {/* ---------- Nav ---------- */}
-      <nav style={{ position: "sticky", top: 0, zIndex: 40, background: "rgba(247,242,234,0.86)", backdropFilter: "blur(10px)", borderBottom: `1px solid ${T.line}` }}>
-        <div style={{ maxWidth: 1120, margin: "0 auto", padding: "16px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <nav style={{ position: "sticky", top: 0, zIndex: 40, background: "rgba(238,241,246,0.86)", backdropFilter: "blur(10px)", borderBottom: `1px solid ${T.line}` }}>
+        <div style={{ maxWidth: 1120, margin: "0 auto", padding: "14px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 9, background: T.accentBg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>🏷️</div>
-            <span style={{ fontFamily: F.display, fontSize: 17, fontWeight: 700, color: T.ink }}>Thuê Đồ</span>
+            <div style={{ width: 32, height: 32, borderRadius: 9, background: T.accentBg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <CircuitBoard size={17} color={T.accentDeep} />
+            </div>
+            <span style={{ fontFamily: F.display, fontSize: 17, fontWeight: 700, color: T.ink }}>LabShare</span>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 26 }}>
-            <a href="#how" style={{ fontFamily: F.body, fontSize: 13.5, color: T.inkSoft, textDecoration: "none" }}>Cách hoạt động</a>
-            <a href="#categories" style={{ fontFamily: F.body, fontSize: 13.5, color: T.inkSoft, textDecoration: "none" }}>Danh mục</a>
-            <a href="#value" style={{ fontFamily: F.body, fontSize: 13.5, color: T.inkSoft, textDecoration: "none" }}>Vì sao chúng tôi</a>
-            <button onClick={onEnter} style={{ padding: "11px 20px", borderRadius: 12, background: T.accent, color: "#fff", border: "none", cursor: "pointer", fontFamily: F.display, fontWeight: 600, fontSize: 13.5, display: "flex", alignItems: "center", gap: 7 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
+            <a href="#kits" onClick={() => scrollTo("kits")} style={{ fontFamily: F.body, fontSize: 13.5, color: T.inkSoft, textDecoration: "none" }}>Thiết bị</a>
+            <a href="#how" onClick={() => scrollTo("how")} style={{ fontFamily: F.body, fontSize: 13.5, color: T.inkSoft, textDecoration: "none" }}>Cách hoạt động</a>
+            <a href="#register" onClick={() => scrollTo("register")} style={{ fontFamily: F.body, fontSize: 13.5, color: T.inkSoft, textDecoration: "none" }}>Đăng ký</a>
+            <button onClick={onEnter} style={{ padding: "10px 18px", borderRadius: 12, background: T.accent, color: "#fff", border: "none", cursor: "pointer", fontFamily: F.display, fontWeight: 600, fontSize: 13.5, display: "flex", alignItems: "center", gap: 7 }}>
               Vào ứng dụng <ArrowRight size={15} />
             </button>
           </div>
         </div>
       </nav>
 
-      {/* ---------- Hero ---------- */}
-      <header style={{ background: "radial-gradient(700px 420px at 78% -10%, rgba(200,80,46,0.10), transparent 60%), radial-gradient(600px 380px at 12% 110%, rgba(31,95,74,0.12), transparent 60%), #F7F2EA", color: T.ink, position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "relative", maxWidth: 1120, margin: "0 auto", padding: "72px 24px 80px", display: "grid", gridTemplateColumns: "1.15fr 0.85fr", gap: 40, alignItems: "center" }}>
+      {/* ---------- ① Hero ---------- */}
+      <header style={{ background: "radial-gradient(700px 420px at 80% -10%, rgba(242,169,59,0.14), transparent 60%), radial-gradient(600px 380px at 10% 110%, rgba(42,111,104,0.14), transparent 60%), #EEF1F6", color: T.ink, position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "relative", maxWidth: 1120, margin: "0 auto", padding: "76px 24px 84px", display: "grid", gridTemplateColumns: "1.15fr 0.85fr", gap: 40, alignItems: "center" }}>
           <div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: T.surface, border: `1px solid ${T.line}`, padding: "7px 14px", borderRadius: 30, marginBottom: 22 }}>
-              <Sparkles size={14} color={T.accent} />
-              <span style={{ fontFamily: F.body, fontSize: 12.5, color: T.inkSoft }}>Marketplace cho thuê đồ giữa sinh viên</span>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 7, background: T.surface, border: `1px solid ${T.line}`, padding: "7px 14px", borderRadius: 30, marginBottom: 22 }}>
+              <MapPin size={13} color={T.accent} />
+              <span style={{ fontFamily: F.body, fontSize: 12.5, color: T.inkSoft }}>Hiện thử nghiệm tại <strong style={{ color: T.ink }}>HUST</strong></span>
             </div>
-            <h1 style={{ fontFamily: F.display, fontSize: "clamp(40px, 6vw, 60px)", fontWeight: 700, lineHeight: 1.05, margin: "0 0 20px", letterSpacing: -1 }}>
-              Đừng mua.<br />
-              <span style={{ color: T.accent }}>Thuê thôi.</span>
+            <h1 style={{ fontFamily: F.display, fontSize: "clamp(38px, 5.6vw, 58px)", fontWeight: 700, lineHeight: 1.06, margin: "0 0 16px", letterSpacing: -1 }}>
+              Không cần mua thiết bị<br />chỉ để làm một project.<br />
+              <span style={{ color: T.accent }}>Thuê thiết bị STEM theo ngày/tuần.</span>
             </h1>
-            <p style={{ fontFamily: F.body, fontSize: 17, color: T.inkSoft, maxWidth: 480, margin: "0 0 28px", lineHeight: 1.6 }}>
-              Từ laptop, máy ảnh đến đồ gia dụng, dụng cụ thể thao — thuê của người khác quanh bạn, giá minh bạch và được bảo vệ bởi điểm tin cậy.
+            <p style={{ fontFamily: F.body, fontSize: 17, color: T.inkSoft, maxWidth: 500, margin: "0 0 22px", lineHeight: 1.6 }}>
+              Oscilloscope, Power Supply, Arduino, STM32, Raspberry Pi, Logic Analyzer — ngay tại trường, giá minh bạch và được kiểm tra trước khi nhận.
             </p>
-            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <button onClick={onEnter} style={{ padding: "15px 26px", borderRadius: 14, background: T.accent, color: "#fff", border: "none", cursor: "pointer", fontFamily: F.display, fontWeight: 700, fontSize: 15.5, display: "flex", alignItems: "center", gap: 9 }}>
-                Khám phá đồ để thuê <ArrowRight size={17} strokeWidth={2.5} />
-              </button>
-              <a href="#how" style={{ padding: "14px 24px", borderRadius: 14, border: `1px solid ${T.line}`, color: T.ink, fontFamily: F.body, fontWeight: 500, fontSize: 14.5, textDecoration: "none", display: "flex", alignItems: "center", gap: 8 }}>
-                Xem cách hoạt động
-              </a>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 26 }}>
+              {["Oscilloscope", "Power Supply", "Arduino", "STM32", "Raspberry Pi", "Logic Analyzer"].map((t) => <Chip key={t}>{t}</Chip>)}
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 30 }}>
-              <div style={{ display: "flex" }}>
-                {[T.accent, T.green, T.teal].map((c, i) => (
-                  <div key={i} style={{ width: 30, height: 30, borderRadius: "50%", border: `2px solid ${T.bg}`, background: c, marginLeft: i ? -10 : 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13 }}>{["💻", "📷", "🎙️"][i]}</div>
-                ))}
-              </div>
-              <span style={{ fontFamily: F.body, fontSize: 13, color: T.inkSoft }}>Được tin dùng bởi <strong style={{ color: T.ink }}>5.000+</strong> sinh viên Hà Nội</span>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <Primary big onClick={() => scrollTo("kits")}>Tìm thiết bị <ArrowRight size={17} strokeWidth={2.5} /></Primary>
+              <Ghost onClick={() => scrollTo("suggest")}>Tôi có project cần thiết bị <Sparkles size={15} color={T.accent} /></Ghost>
             </div>
           </div>
 
+          {/* Hero visual: STEM kit mock card */}
           <div style={{ display: "flex", justifyContent: "flex-end" }}>
-            <HeroProductCard />
+            <div style={{ background: T.surface, border: `1px solid ${T.line}`, borderRadius: 20, padding: 22, boxShadow: "0 24px 60px rgba(32,26,21,0.18)", width: "100%", maxWidth: 360 }}>
+              <div style={{ height: 150, borderRadius: 14, background: `linear-gradient(135deg, ${T.accentBg}, ${T.tealBg})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 64, marginBottom: 14 }}>🤖</div>
+              <p style={{ fontFamily: F.display, fontSize: 16, fontWeight: 700, margin: "0 0 4px" }}>Robotics Project Kit</p>
+              <p style={{ fontFamily: F.body, fontSize: 12, color: T.inkFaint, margin: "0 0 14px", display: "flex", alignItems: "center", gap: 5 }}>
+                <MapPin size={13} /> KTX Bách Khoa · Nhận trong hôm nay
+              </p>
+              <div style={{ display: "flex", gap: 7, marginBottom: 16, flexWrap: "wrap" }}>
+                {[
+                  ["Phân hạng A", T.teal],
+                  ["Đã kiểm tra 11/08", T.accentDeep],
+                ].map(([t, c]) => (
+                  <span key={t} style={{ display: "flex", alignItems: "center", gap: 5, fontFamily: F.body, fontSize: 11, color: c, background: T.bg, padding: "5px 9px", borderRadius: 20 }}>
+                    <ShieldCheck size={12} strokeWidth={2.2} /> {t}
+                  </span>
+                ))}
+              </div>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 5, marginBottom: 14 }}>
+                <span style={{ fontFamily: F.mono, fontSize: 26, fontWeight: 700, color: T.ink }}>{money(60000)}</span>
+                <span style={{ fontFamily: F.body, fontSize: 12, color: T.inkFaint }}>/ ngày · cọc {money(500000)}</span>
+              </div>
+              <button onClick={onEnter} style={{ width: "100%", padding: "12px 0", borderRadius: 12, background: T.accent, color: "#fff", border: "none", cursor: "pointer", fontFamily: F.display, fontWeight: 600, fontSize: 13.5, display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>Thuê bộ này <ArrowRight size={15} /></button>
+            </div>
           </div>
         </div>
       </header>
 
-      {/* ---------- KPI strip ---------- */}
-      <section style={{ maxWidth: 1120, margin: "-42px auto 0", padding: "0 24px", position: "relative", zIndex: 2 }}>
+      {/* ---------- ② Problem → Solution ---------- */}
+      <Section kicker="Vấn đề" title="Bạn đang gặp vấn đề này?" sub="Đừng để việc thiếu thiết bị chặn project của bạn — có cách rẻ hơn nhiều.">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
+          {[
+            { icon: Wallet, title: "💰 Thiết bị đắt", desc: "Một project chỉ cần dùng vài tuần nhưng phải bỏ hàng triệu đồng để mua." },
+            { icon: Timer, title: "⏰ Phụ thuộc phòng lab", desc: "Thiết bị có nhưng không phải lúc nào cũng dùng được, khó mang ra ngoài." },
+            { icon: Search, title: "🤔 Không biết cần mua gì", desc: "Mới làm project, bạn thường không biết chính xác bộ thiết bị nào phù hợp." },
+          ].map((p) => (
+            <Card key={p.title}><p.icon size={22} color={T.accentDeep} /><h3 style={{ fontFamily: F.display, fontSize: 17, fontWeight: 700, margin: "12px 0 8px" }}>{p.title}</h3><p style={{ fontFamily: F.body, fontSize: 13.5, color: T.inkSoft, lineHeight: 1.65, margin: 0 }}>{p.desc}</p></Card>
+          ))}
+        </div>
+
+        <div style={{ textAlign: "center", margin: "30px 0 8px", color: T.inkFaint }}>↓</div>
+
+        <div style={{ background: T.surface, border: `1px solid ${T.line}`, borderRadius: 20, padding: "34px 28px" }}>
+          <p style={{ fontFamily: F.mono, fontSize: 12, color: T.teal, letterSpacing: 1.5, textTransform: "uppercase", margin: "0 0 22px" }}>LabShare giải quyết bằng cách</p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+            {[
+              { icon: GraduationCap, t: "Chọn project" },
+              { icon: CircuitBoard, t: "Nhận bộ thiết bị phù hợp" },
+              { icon: Timer, t: "Thuê trong thời gian cần" },
+              { icon: Check, t: "Trả lại" },
+            ].map((s) => (
+              <div key={s.t} style={{ textAlign: "center" }}>
+                <div style={{ width: 52, height: 52, borderRadius: 14, background: T.tealBg, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px" }}>
+                  <s.icon size={22} color={T.tealDeep} />
+                </div>
+                <p style={{ fontFamily: F.display, fontSize: 14, fontWeight: 600, color: T.ink, margin: 0, lineHeight: 1.4 }}>{s.t}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Section>
+
+      {/* ---------- ③ "Bạn đang làm project gì?" (AI suggest) ---------- */}
+      <Section id="suggest" kicker="Gợi ý thiết bị" title="Bạn đang làm project gì?" sub="Mô tả bằng lời của bạn — LabShare đề xuất bộ thiết bị phù hợp. Không cần thuộc tên model.">
+        <div style={{ maxWidth: 720, margin: "0 auto" }}>
+          <form onSubmit={handleSuggest} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <textarea
+              value={desc}
+              onChange={(e) => setDesc(e.target.value)}
+              rows={4}
+              placeholder={`Ví dụ: "Robot dùng STM32, cần đo PWM và dòng điện..."`}
+              style={{ ...fieldBase, resize: "vertical", lineHeight: 1.6, fontSize: 15, borderRadius: 16 }}
+            />
+            <div style={{ display: "flex", justifyContent: "center" }}>
+              <Primary big type="submit"><Sparkles size={17} /> Tìm thiết bị cho tôi</Primary>
+            </div>
+          </form>
+
+          {suggested && (
+            <div style={{ marginTop: 28, background: T.surface, border: `1px solid ${T.line}`, borderRadius: 20, padding: 28 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+                <Sparkles size={16} color={T.accent} />
+                <h3 style={{ fontFamily: F.display, fontSize: 18, fontWeight: 700, margin: 0 }}>Bộ thiết bị đề xuất cho bạn</h3>
+              </div>
+              {SUGGESTED.map((s) => (
+                <div key={s.name} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "13px 0", borderTop: `1px solid ${T.line}` }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{ width: 34, height: 34, borderRadius: 10, background: T.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <s.icon size={16} color={T.accentDeep} />
+                    </div>
+                    <span style={{ fontFamily: F.body, fontSize: 14, color: T.ink }}>{s.name}</span>
+                  </div>
+                  <span style={{ fontFamily: F.mono, fontSize: 13.5, fontWeight: 600, color: T.ink }}>{money(s.price)}<span style={{ color: T.inkFaint, fontWeight: 400 }}>/ngày</span></span>
+                </div>
+              ))}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "15px 0", borderTop: `2px solid ${T.ink}` }}>
+                <span style={{ fontFamily: F.display, fontSize: 15, fontWeight: 700, color: T.ink }}>Tổng</span>
+                <span style={{ fontFamily: F.mono, fontSize: 18, fontWeight: 700, color: T.accent }}>
+                  ~{money(85000)}<span style={{ color: T.inkFaint, fontWeight: 400, fontSize: 13 }}>/ngày</span>
+                </span>
+              </div>
+              <button onClick={onEnter} style={{ width: "100%", marginTop: 14, padding: "14px 0", borderRadius: 12, background: T.accent, color: "#fff", border: "none", cursor: "pointer", fontFamily: F.display, fontWeight: 700, fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                Đăng ký thuê bộ này <ArrowRight size={16} />
+              </button>
+            </div>
+          )}
+        </div>
+      </Section>
+
+      {/* ---------- ④ Featured kits ---------- */}
+      <Section id="kits" kicker="Bộ thiết bị phổ biến" title="🔥 Các bộ thiết bị phổ biến" sub="Chọn theo nhu cầu của project — không cần biết tên model.">
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
-          {KPIS.map((k) => <KpiTile key={k.label} {...k} />)}
+          {KITS.map((k) => (
+            <div key={k.name} style={{ background: T.surface, border: `1px solid ${T.line}`, borderRadius: 18, padding: 22 }}>
+              <div style={{ height: 84, borderRadius: 14, background: `linear-gradient(135deg, ${k.grad[0]}, ${k.grad[1]})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 40, marginBottom: 14 }}>{k.emoji}</div>
+              <h3 style={{ fontFamily: F.display, fontSize: 16, fontWeight: 700, margin: "0 0 8px" }}>{k.name}</h3>
+              <p style={{ fontFamily: F.body, fontSize: 12.5, color: T.inkSoft, lineHeight: 1.55, margin: "0 0 14px", minHeight: 40 }}>{k.items[0]}</p>
+              <p style={{ fontFamily: F.mono, fontSize: 15, fontWeight: 700, color: T.accent, margin: 0 }}>Từ {money(k.price)}<span style={{ color: T.inkFaint, fontWeight: 400, fontSize: 11 }}>/ngày</span></p>
+            </div>
+          ))}
         </div>
-      </section>
+        <div style={{ textAlign: "center", marginTop: 24 }}>
+          <Ghost onClick={onEnter}>Xem tất cả thiết bị <ArrowRight size={15} /></Ghost>
+        </div>
+      </Section>
 
-      {/* ---------- How it works ---------- */}
-      <section id="how" style={{ maxWidth: 1080, margin: "0 auto", padding: "90px 24px 0" }}>
-        <div style={{ textAlign: "center", maxWidth: 560, margin: "0 auto 44px" }}>
-          <p style={{ fontFamily: F.mono, fontSize: 12, color: T.accentDeep, letterSpacing: 1.5, textTransform: "uppercase", margin: "0 0 10px" }}>Cách hoạt động</p>
-          <h2 style={{ fontFamily: F.display, fontSize: 34, fontWeight: 700, margin: "0 0 12px", letterSpacing: -0.5 }}>Từ lúc cần đến lúc trả — trong 4 bước</h2>
-          <p style={{ fontFamily: F.body, fontSize: 15, color: T.inkSoft, margin: 0 }}>Mỗi bước đều được thiết kế để minh bạch, nhanh và không lo về phí ẩn.</p>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
+      {/* ---------- ⑤ How it works ---------- */}
+      <Section id="how" kicker="Cách hoạt động" title="Thuê hoạt động thế nào?" sub="Chỉ 4 bước — từ lúc cần đến lúc trả.">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
           {STEPS.map((s) => (
-            <div key={s.n} style={{ background: T.surface, border: `1px solid ${T.line}`, borderRadius: 18, padding: 26, position: "relative" }}>
-              <span style={{ position: "absolute", top: 20, right: 20, fontFamily: F.display, fontSize: 30, fontWeight: 700, color: T.line }}>{s.n}</span>
-              <div style={{ width: 46, height: 46, borderRadius: 13, background: T.accentBg, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 18 }}>
-                <s.icon size={22} color={T.accentDeep} />
-              </div>
-              <h3 style={{ fontFamily: F.display, fontSize: 16, fontWeight: 700, margin: "0 0 8px" }}>{s.title}</h3>
+            <Card key={s.n}>
+              <span style={{ fontFamily: F.display, fontSize: 22, fontWeight: 700, color: T.accent }}>{s.n}</span>
+              <h3 style={{ fontFamily: F.display, fontSize: 16, fontWeight: 700, margin: "8px 0 6px" }}>{s.title}</h3>
               <p style={{ fontFamily: F.body, fontSize: 13, color: T.inkSoft, lineHeight: 1.6, margin: 0 }}>{s.desc}</p>
-            </div>
+            </Card>
           ))}
         </div>
-      </section>
+      </Section>
 
-      {/* ---------- Categories ---------- */}
-      <section id="categories" style={{ maxWidth: 1080, margin: "0 auto", padding: "90px 24px 0" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 28, flexWrap: "wrap", gap: 12 }}>
-          <div>
-            <p style={{ fontFamily: F.mono, fontSize: 12, color: T.accentDeep, letterSpacing: 1.5, textTransform: "uppercase", margin: "0 0 10px" }}>Danh mục</p>
-            <h2 style={{ fontFamily: F.display, fontSize: 30, fontWeight: 700, margin: 0 }}>Thuê gì hôm nay?</h2>
-          </div>
-          <button onClick={onEnter} style={{ padding: "11px 18px", borderRadius: 12, border: `1px solid ${T.line}`, background: T.surface, color: T.ink, cursor: "pointer", fontFamily: F.body, fontWeight: 600, fontSize: 13.5, display: "flex", alignItems: "center", gap: 7 }}>
-            Xem tất cả <ArrowRight size={15} />
-          </button>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 14 }}>
-          {CATS.map((c) => (
-            <button key={c.id} onClick={onEnter} style={{
-              background: T.surface, border: `1px solid ${T.line}`, borderRadius: 18, padding: "26px 14px", cursor: "pointer",
-              display: "flex", flexDirection: "column", alignItems: "center", gap: 12, transition: "transform .15s, border-color .15s",
-            }} onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.borderColor = T.ink; }} onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderColor = T.line; }}
-            >
-              <span style={{ fontSize: 44 }}>{c.emoji}</span>
-              <span style={{ fontFamily: F.display, fontSize: 14, fontWeight: 600, color: T.ink }}>{c.label}</span>
-              <span style={{ fontFamily: F.body, fontSize: 11.5, color: T.inkFaint }}>Từ 40.000đ/ngày</span>
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {/* ---------- Value props ---------- */}
-      <section id="value" style={{ maxWidth: 1080, margin: "0 auto", padding: "90px 24px 0" }}>
-        <div style={{ textAlign: "center", maxWidth: 560, margin: "0 auto 40px" }}>
-          <p style={{ fontFamily: F.mono, fontSize: 12, color: T.accentDeep, letterSpacing: 1.5, textTransform: "uppercase", margin: "0 0 10px" }}>Vì sao Thuê Đồ</p>
-          <h2 style={{ fontFamily: F.display, fontSize: 30, fontWeight: 700, margin: 0 }}>Thuê thông minh hơn mua mới</h2>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
-          {VALUES.map((v) => (
-            <div key={v.title} style={{ background: T.surface, border: `1px solid ${T.line}`, borderRadius: 18, padding: 28 }}>
-              <div style={{ width: 48, height: 48, borderRadius: 14, background: T.bg, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 18 }}>
-                <v.icon size={24} color={v.color} strokeWidth={2} />
+      {/* ---------- ⑥ Trust / Quality ---------- */}
+      <Section id="trust" kicker="Chất lượng" title="🔒 Mỗi thiết bị đều được kiểm tra trước khi cho thuê" sub="Đây chính là điểm khác biệt so với 'đăng lên Facebook rồi cho mượn'.">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+          {TRUST.map((t) => (
+            <div key={t} style={{ display: "flex", alignItems: "center", gap: 10, background: T.surface, border: `1px solid ${T.line}`, borderRadius: 14, padding: "16px 18px" }}>
+              <div style={{ width: 30, height: 30, borderRadius: "50%", background: T.greenBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Check size={15} color={T.green} strokeWidth={3} />
               </div>
-              <h3 style={{ fontFamily: F.display, fontSize: 17, fontWeight: 700, margin: "0 0 8px" }}>{v.title}</h3>
-              <p style={{ fontFamily: F.body, fontSize: 13.5, color: T.inkSoft, lineHeight: 1.65, margin: 0 }}>{v.desc}</p>
+              <span style={{ fontFamily: F.body, fontSize: 14, color: T.ink }}>{t}</span>
             </div>
           ))}
         </div>
-      </section>
+      </Section>
 
-      {/* ---------- Final CTA ---------- */}
-      <section style={{ maxWidth: 1080, margin: "0 auto", padding: "90px 24px" }}>
-        <div style={{ background: T.surface, border: `1px solid ${T.line}`, borderRadius: 24, padding: "60px 40px", textAlign: "center", position: "relative", overflow: "hidden", boxShadow: "0 18px 44px rgba(32,26,21,0.06)" }}>
-          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(600px 300px at 50% 0%, rgba(200,80,46,0.08), transparent 65%)" }} />
-          <div style={{ position: "relative" }}>
-            <p style={{ fontSize: 36, margin: "0 0 12px" }}>📦</p>
-            <h2 style={{ fontFamily: F.display, fontSize: "clamp(26px, 4vw, 38px)", fontWeight: 700, color: T.ink, margin: "0 0 12px", letterSpacing: -0.5 }}>
-              Có đồ đang nằm không? Hãy cho thuê.
-            </h2>
-            <p style={{ fontFamily: F.body, fontSize: 15, color: T.inkSoft, maxWidth: 480, margin: "0 auto 26px", lineHeight: 1.6 }}>
-              Biến đồ dùng thừa thành thu nhập. Đăng tin miễn phí, quản lý yêu cầu ngay trong ứng dụng.
+      {/* ---------- ⑦ Senior section ---------- */}
+      <Section id="senior" kicker="Dành cho người có thiết bị" title="Bạn có thiết bị không còn sử dụng?" sub="Đừng để Arduino, STM32, Raspberry Pi, sensor kit... nằm trong tủ.">
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, alignItems: "center" }}>
+          <Card style={{ borderLeft: `3px solid ${T.teal}` }}>
+            <Boxes size={22} color={T.tealDeep} />
+            <h3 style={{ fontFamily: F.display, fontSize: 19, fontWeight: 700, margin: "12px 0 8px" }}>Cho thuê thiết bị → kiếm thêm thu nhập</h3>
+            <p style={{ fontFamily: F.body, fontSize: 14, color: T.inkSoft, lineHeight: 1.65, margin: 0 }}>
+              Thiết bị nằm im không sinh lời. Cho LabShare quản lý — chúng tôi lo kiểm tra, bàn giao và điểm nhận/trả cho bạn.
             </p>
-            <button onClick={onEnter} style={{ padding: "16px 30px", borderRadius: 14, background: T.accent, color: "#fff", border: "none", cursor: "pointer", fontFamily: F.display, fontWeight: 700, fontSize: 15.5, display: "inline-flex", alignItems: "center", gap: 9 }}>
-              Bắt đầu ngay <ArrowRight size={17} strokeWidth={2.5} />
-            </button>
+          </Card>
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            {[
+              { icon: ShieldCheck, t: "LabShare hỗ trợ quản lý", d: "Kiểm tra, niêm phong, lịch cho thuê." },
+              { icon: BadgeCheck, t: "Đặt cọc rõ ràng", d: "Bạn luôn được bảo vệ khi cho thuê." },
+            ].map((s) => (
+              <div key={s.t} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                <div style={{ width: 40, height: 40, borderRadius: 12, background: T.tealBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <s.icon size={18} color={T.tealDeep} />
+                </div>
+                <div>
+                  <p style={{ fontFamily: F.display, fontSize: 15, fontWeight: 700, margin: 0 }}>{s.t}</p>
+                  <p style={{ fontFamily: F.body, fontSize: 13, color: T.inkSoft, margin: "2px 0 0" }}>{s.d}</p>
+                </div>
+              </div>
+            ))}
+            <div style={{ marginTop: 6 }}>
+              <Primary onClick={onEnter}>Đăng ký ký gửi thiết bị <ArrowRight size={16} /></Primary>
+            </div>
           </div>
+        </div>
+      </Section>
+
+      {/* ---------- ⑧ Pickup points ---------- */}
+      <Section id="pickup" kicker="Điểm nhận/trả" title="📍 Nhận thiết bị gần bạn" sub="Nhận và trả tại điểm cố định, đúng giờ, có kiểm tra.">
+        <div style={{ maxWidth: 560, margin: "0 auto" }}>
+          <Card>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 16 }}>
+              <div>
+                <h3 style={{ fontFamily: F.display, fontSize: 18, fontWeight: 700, margin: 0 }}>KTX Bách Khoa</h3>
+                <p style={{ fontFamily: F.body, fontSize: 12.5, color: T.inkFaint, margin: "4px 0 0" }}>Cơ sở đầu tiên của LabShare</p>
+              </div>
+              <span style={{ fontFamily: F.body, fontSize: 12, fontWeight: 600, color: T.green, background: T.greenBg, padding: "5px 10px", borderRadius: 20, display: "flex", alignItems: "center", gap: 5 }}>
+                <span style={{ width: 7, height: 7, borderRadius: "50%", background: T.green }} /> Đang hoạt động
+              </span>
+            </div>
+            {[
+              ["📦", "Điểm nhận", "Cổng A"],
+              ["🕐", "Giờ hoạt động", "17:00 – 22:00"],
+            ].map(([icon, k, v]) => (
+              <div key={k} style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 0", borderTop: `1px solid ${T.line}` }}>
+                <span style={{ fontSize: 16 }}>{icon}</span>
+                <span style={{ fontFamily: F.body, fontSize: 13.5, color: T.inkSoft, flex: 1 }}>{k}</span>
+                <span style={{ fontFamily: F.body, fontSize: 14, fontWeight: 600, color: T.ink }}>{v}</span>
+              </div>
+            ))}
+          </Card>
+          <p style={{ textAlign: "center", fontFamily: F.body, fontSize: 12.5, color: T.inkFaint, marginTop: 16 }}>
+            Sắp mở rộng: <strong style={{ color: T.inkSoft }}>HUST → NEU → UET → PTIT...</strong>
+          </p>
+        </div>
+      </Section>
+
+      {/* ---------- ⑨ Final CTA + validation form ---------- */}
+      <section id="register" style={{ maxWidth: 1080, margin: "0 auto", padding: "84px 24px" }}>
+        <div style={{ background: T.surface, border: `1px solid ${T.line}`, borderRadius: 24, padding: "clamp(32px, 5vw, 56px)", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(600px 300px at 50% 0%, rgba(242,169,59,0.10), transparent 65%)" }} />
+          <div style={{ position: "relative", maxWidth: 520, margin: "0 auto", textAlign: "center" }}>
+            <p style={{ fontSize: 34, margin: "0 0 10px" }}>🚀</p>
+            <h2 style={{ fontFamily: F.display, fontSize: "clamp(26px, 4vw, 36px)", fontWeight: 700, margin: "0 0 10px", letterSpacing: -0.5 }}>
+              Bạn đang cần thiết bị cho project?
+            </h2>
+            <p style={{ fontFamily: F.body, fontSize: 15, color: T.inkSoft, margin: "0 0 6px", lineHeight: 1.6 }}>
+              Hãy cho chúng tôi biết bạn đang làm gì — chúng tôi sẽ tìm bộ thiết bị phù hợp cho bạn.
+            </p>
+          </div>
+
+          {registered ? (
+            <div style={{ position: "relative", maxWidth: 520, margin: "26px auto 0", textAlign: "center", background: T.greenBg, border: `1px solid ${T.green}`, borderRadius: 16, padding: "30px 24px" }}>
+              <div style={{ width: 52, height: 52, borderRadius: "50%", background: T.green, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px" }}>
+                <Check size={26} color="#fff" strokeWidth={3} />
+              </div>
+              <h3 style={{ fontFamily: F.display, fontSize: 19, fontWeight: 700, color: T.ink, margin: 0 }}>Đã ghi nhận nhu cầu của bạn!</h3>
+              <p style={{ fontFamily: F.body, fontSize: 14, color: T.inkSoft, margin: "8px 0 0", lineHeight: 1.6 }}>
+                LabShare sẽ liên hệ khi bộ thiết bị phù hợp sẵn sàng. Không cần mua — chỉ cần nói cho chúng tôi biết.
+              </p>
+            </div>
+          ) : (
+            <form onSubmit={handleRegister} style={{ position: "relative", maxWidth: 520, margin: "28px auto 0", display: "flex", flexDirection: "column", gap: 16 }}>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  <label style={{ fontFamily: F.body, fontSize: 12.5, color: T.inkSoft }}>Bạn đang học trường nào?</label>
+                  <FieldSelect value={form.school} onChange={set("school")} options={SCHOOLS} />
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  <label style={{ fontFamily: F.body, fontSize: 12.5, color: T.inkSoft }}>Ngành?</label>
+                  <FieldSelect value={form.major} onChange={set("major")} options={MAJORS} />
+                </div>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <label style={{ fontFamily: F.body, fontSize: 12.5, color: T.inkSoft }}>Bạn đang làm project gì?</label>
+                <textarea value={form.project} onChange={set("project")} rows={2} placeholder='Ví dụ: "Robot theo dõi, cần cảm biến và STM32..."' style={{ ...fieldBase, resize: "vertical", lineHeight: 1.6 }} />
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <label style={{ fontFamily: F.body, fontSize: 12.5, color: T.inkSoft }}>Bạn cần thiết bị nào?</label>
+                <FieldSelect value={form.equip} onChange={set("equip")} options={EQUIP_NEED} />
+              </div>
+
+              <RadioGroup legend="Thời gian cần" value={form.duration} onChange={(v) => set("duration")(v)} options={DURATIONS} />
+              <RadioGroup legend="Mức ngân sách" value={form.budget} onChange={(v) => set("budget")(v)} options={BUDGETS} />
+
+              <button type="submit" style={{ marginTop: 6, padding: "15px 0", borderRadius: 14, background: T.accent, color: "#fff", border: "none", cursor: "pointer", fontFamily: F.display, fontWeight: 700, fontSize: 15.5, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                Đăng ký <ArrowRight size={17} strokeWidth={2.5} />
+              </button>
+            </form>
+          )}
         </div>
       </section>
 
       {/* ---------- Footer ---------- */}
       <footer style={{ borderTop: `1px solid ${T.line}`, background: T.surface }}>
-        <div style={{ maxWidth: 1120, margin: "0 auto", padding: "36px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
+        <div style={{ maxWidth: 1120, margin: "0 auto", padding: "34px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-            <div style={{ width: 28, height: 28, borderRadius: 8, background: T.accentBg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>🏷️</div>
-            <span style={{ fontFamily: F.display, fontSize: 15, fontWeight: 700, color: T.ink }}>Thuê Đồ</span>
+            <div style={{ width: 28, height: 28, borderRadius: 8, background: T.accentBg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <CircuitBoard size={15} color={T.accentDeep} />
+            </div>
+            <span style={{ fontFamily: F.display, fontSize: 15, fontWeight: 700, color: T.ink }}>LabShare</span>
           </div>
           <div style={{ display: "flex", gap: 24 }}>
-            {["Về chúng tôi", "Điều khoản", "Bảo mật", "Trợ giúp"].map((l) => (
-              <span key={l} style={{ fontFamily: F.body, fontSize: 13, color: T.inkSoft, cursor: "pointer" }}>{l}</span>
+            {["Thiết bị", "Cách hoạt động", "Điểm nhận/trả", "Điều khoản"].map((l) => (
+              <a key={l} href={`#${l}`} style={{ fontFamily: F.body, fontSize: 13, color: T.inkSoft, textDecoration: "none", cursor: "pointer" }}>{l}</a>
             ))}
           </div>
-          <span style={{ fontFamily: F.body, fontSize: 12, color: T.inkFaint }}>© 2026 Thuê Đồ · Dành cho sinh viên</span>
+          <span style={{ fontFamily: F.body, fontSize: 12, color: T.inkFaint }}>© 2026 LabShare · Hiện thử nghiệm tại HUST</span>
         </div>
       </footer>
     </div>

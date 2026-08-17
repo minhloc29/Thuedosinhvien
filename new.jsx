@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Search, Plus, Check, X, Home as HomeIcon, User, ShieldCheck, ArrowRight,
   Wallet, Package, Tag, Scale, ClipboardCheck, BarChart3, MapPin, Star
@@ -50,75 +50,6 @@ const moneyShort = (n) => (n >= 1000000 ? (n / 1000000).toFixed(n % 1000000 === 
 
 const CURRENT_USER = "Minh Quân (K67)";
 const CURRENT_USER_RENTER_LABEL = "Bạn (Minh Quân - K67)";
-
-// ---------------------------------------------------------------------------
-// Minimal API helper for Phase 3 (consignment + admin appraisal).
-// Demo build logs in once with the seeded senior/admin accounts and caches the
-// token. If the backend is unreachable, callers fall back to local state so the
-// prototype keeps working standalone.
-// ---------------------------------------------------------------------------
-let API_TOKEN = null;
-let API_TOKEN_PROMISE = null;
-function apiToken() {
-  if (API_TOKEN) return Promise.resolve(API_TOKEN);
-  if (!API_TOKEN_PROMISE) {
-    API_TOKEN_PROMISE = fetch("/auth/login", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: "minhquan@bk.edu.vn", password: "password123" }),
-    })
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("login failed"))))
-      .then(({ token }) => { API_TOKEN = token; return token; })
-      .catch((e) => { API_TOKEN_PROMISE = null; throw e; });
-  }
-  return API_TOKEN_PROMISE;
-}
-function api(path, options = {}, body) {
-  const opts = { headers: {}, ...options };
-  if (body !== undefined) {
-    opts.method = opts.method || "POST";
-    opts.headers["Content-Type"] = "application/json";
-    opts.body = JSON.stringify(body);
-  }
-  return apiToken().then((token) => {
-    opts.headers["Authorization"] = "Bearer " + token;
-    return fetch("/api" + path, opts).then((r) => {
-      if (!r.ok) return r.json().then((j) => Promise.reject(new Error(j.error || "API error")));
-      return r.status === 204 ? null : r.json();
-    });
-  });
-}
-
-// Admin-token variant — used by the appraisal-queue actions (approve/reject).
-let API_ADMIN_TOKEN = null;
-let API_ADMIN_TOKEN_PROMISE = null;
-function apiAdmin(path, options = {}, body) {
-  if (!API_ADMIN_TOKEN) {
-    if (!API_ADMIN_TOKEN_PROMISE) {
-      API_ADMIN_TOKEN_PROMISE = fetch("/auth/login", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "admin@labshare.vn", password: "password123" }),
-      })
-        .then((r) => (r.ok ? r.json() : Promise.reject(new Error("admin login failed"))))
-        .then(({ token }) => { API_ADMIN_TOKEN = token; return token; })
-        .catch((e) => { API_ADMIN_TOKEN_PROMISE = null; throw e; });
-    }
-    return API_ADMIN_TOKEN_PROMISE.then((token) => adminCall(token, path, options, body));
-  }
-  return adminCall(API_ADMIN_TOKEN, path, options, body);
-}
-function adminCall(token, path, options = {}, body) {
-  const opts = { headers: {}, ...options };
-  if (body !== undefined) {
-    opts.method = opts.method || "POST";
-    opts.headers["Content-Type"] = "application/json";
-    opts.body = JSON.stringify(body);
-  }
-  opts.headers["Authorization"] = "Bearer " + token;
-  return fetch("/api" + path, opts).then((r) => {
-    if (!r.ok) return r.json().then((j) => Promise.reject(new Error(j.error || "API error")));
-    return r.status === 204 ? null : r.json();
-  });
-}
 
 // ---------------------------------------------------------------------------
 // Mock data — approved catalogue (already appraised & sealed by LabShare)
@@ -378,7 +309,7 @@ const labelStyle = { fontFamily: F.body, fontSize: 11.5, color: T.inkSoft, fontW
 // Sidebar (3 roles)
 // ---------------------------------------------------------------------------
 
-function Sidebar({ screen, setScreen, role, setRole, pendingRentalCount, pendingAppraisalCount, compareCount, onAdd, onExit }) {
+function Sidebar({ screen, setScreen, role, setRole, pendingRentalCount, pendingAppraisalCount, compareCount, onAdd }) {
   const itemsByRole = {
     renter: [
       { id: "home", label: "Trang chủ", icon: HomeIcon },
@@ -401,7 +332,7 @@ function Sidebar({ screen, setScreen, role, setRole, pendingRentalCount, pending
 
   return (
     <aside className="rm-sidebar" style={{ background: T.surface, borderRight: `1px solid ${T.line}`, padding: "24px 16px", display: "flex", flexDirection: "column" }}>
-      <div onClick={onExit} style={{ display: "flex", alignItems: "center", gap: 9, padding: "0 6px 26px", cursor: onExit ? "pointer" : "default" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 9, padding: "0 6px 26px" }}>
         <div style={{ width: 30, height: 30, borderRadius: 9, background: T.ink, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15 }}>\uD83D\uDCE6</div>
         <span style={{ fontFamily: F.display, fontSize: 16.5, fontWeight: 700, color: T.ink }}>LabShare</span>
       </div>
@@ -1322,7 +1253,7 @@ function ProfileScreen({ role, setRole }) {
 
 const ROLE_DEFAULT_SCREEN = { renter: "home", senior: "myConsignments", admin: "appraisalQueue" };
 
-export default function App({ onExit }) {
+export default function App() {
   const [screen, setScreen] = useState("home");
   const [role, setRole] = useState("renter");
   const [query, setQuery] = useState("");
@@ -1343,32 +1274,6 @@ export default function App({ onExit }) {
   const [catalog, setCatalog] = useState(SEED_PRODUCTS);
   const [consignments, setConsignments] = useState(seedConsignments);
   const [bookings, setBookings] = useState(seedBookings);
-
-  // Phase 2: hydrate the catalog from the backend on mount. We keep the local
-  // SEED data as the instant fallback, then merge in DB/API values where the
-  // product matches by sealCode. Local fields SEED marks rich (id p1..p8,
-  // unavailableDays day-numbers) are preserved; DB wins for price/marketValue/
-  // rating/rentedCount/earnedSoFar/desc/specs/included/notIncluded.
-  useEffect(() => {
-    let active = true;
-    fetch("/api/products")
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("catalog fetch failed"))))
-      .then(({ products }) => {
-        if (!active || !Array.isArray(products)) return;
-        const bySeal = (apiProd) => {
-          const seed = SEED_PRODUCTS.find((s) => s.sealCode === apiProd.sealCode);
-          return {
-            ...apiProd,
-            id: seed ? seed.id : apiProd.sealCode,
-            unavailableDays: seed ? seed.unavailableDays : (apiProd.unavailableDays || []),
-            splitSenior: apiProd.splitSenior, splitPlatform: apiProd.splitPlatform,
-          };
-        };
-        setCatalog(products.map(bySeal));
-      })
-      .catch(() => { /* keep SEED fallback if API is down */ });
-    return () => { active = false; };
-  }, []);
 
   const changeRole = (r) => { setRole(r); setScreen(ROLE_DEFAULT_SCREEN[r]); };
 
@@ -1392,28 +1297,12 @@ export default function App({ onExit }) {
     const id = "b" + Date.now();
     setBookings((list) => [{ id, productId: b.product.id, start: b.start, end: b.end, nights: b.nights, total: b.total, pickupId: b.pickupId, renterName: CURRENT_USER_RENTER_LABEL, status: "pending", handoverStage: null }, ...list]);
     setConfirmedBooking({ ...b, id });
-    // Sync to backend (renter action). On success adopt the server booking id;
-    // on failure keep the optimistic local entry (prototype fallback).
-    api("/bookings", {}, {
-      productId: b.product.sealCode || b.product.id, pickupId: b.pickupId,
-      startDate: b.start, endDate: b.end,
-    }).then(({ booking }) => {
-      setBookings((list) => list.map((x) => (x.id === id ? { ...x, id: booking.id, start: booking.start, end: booking.end, nights: booking.nights, total: booking.total, pickupId: booking.pickupId } : x)));
-    }).catch(() => { /* keep local */ });
   };
 
-  const respondRentalRequest = (id, status) => {
-    setBookings((list) => list.map((b) => (b.id === id ? { ...b, status } : b)));
-    // Admin confirm/reject on the backend.
-    apiAdmin(`/admin/bookings/${id}/${status}`).catch(() => { /* keep local */ });
-  };
+  const respondRentalRequest = (id, status) => setBookings((list) => list.map((b) => (b.id === id ? { ...b, status } : b)));
 
   const updateBooking = (id, patch) => {
     setBookings((list) => list.map((b) => (b.id === id ? { ...b, ...patch } : b)));
-    // Map local mutations to backend transitions.
-    if (patch.handoverStage === "picked_up") {
-      apiAdmin(`/admin/bookings/${id}/handover`).catch(() => { /* keep local */ });
-    }
     if (patch.status === "completed") {
       const booking = bookings.find((b) => b.id === id);
       if (booking) {
@@ -1423,25 +1312,12 @@ export default function App({ onExit }) {
           return { ...p, earnedSoFar: p.earnedSoFar + earned, rentedCount: p.rentedCount + 1 };
         }));
       }
-      // Return triggers the backend ledger finalization (deposit release etc.).
-      apiAdmin(`/admin/bookings/${id}/return`).catch(() => { /* keep local */ });
     }
   };
 
   const toggleCompare = (id) => setCompareIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : ids.length >= 3 ? ids : [...ids, id]));
 
-  const addConsignment = (item) => {
-    const local = { ...item, id: "c" + Date.now(), dateSubmitted: "Hôm nay", status: "pending" };
-    setConsignments((list) => [local, ...list]);
-    setAddConsignModalOpen(false); setScreen("myConsignments");
-    // Sync to backend; if it fails we keep the local entry (prototype fallback).
-    api("/consignments", {}, {
-      name: local.name, category: local.category, estimatedValue: local.estimatedValue, desc: local.desc,
-    }).then(({ consignment }) => {
-      // Replace the optimistic id with the DB id (and show DB status).
-      setConsignments((list) => list.map((c) => (c.id === local.id ? { ...c, id: consignment.id, dateSubmitted: consignment.dateSubmitted } : c)));
-    }).catch(() => { /* keep local */ });
-  };
+  const addConsignment = (item) => { setConsignments((list) => [item, ...list]); setAddConsignModalOpen(false); setScreen("myConsignments"); };
 
   const approveAppraisal = (id, appraisal) => {
     const item = consignments.find((c) => c.id === id);
@@ -1458,22 +1334,9 @@ export default function App({ onExit }) {
     setCatalog((list) => [newProduct, ...list]);
     setConsignments((list) => list.map((c) => (c.id === id ? { ...c, status: "approved", productId: newProduct.id } : c)));
     setAppraisalItem(null);
-    // Sync to backend (admin action). On success, adopt the server-created
-    // product id; on failure keep the optimistic local product (fallback).
-    apiAdmin(`/admin/consignments/${id}/approve`, {}, {
-      grade: appraisal.grade, price: appraisal.price, marketValue: appraisal.marketValue,
-      splitSenior: appraisal.splitSenior, splitPlatform: appraisal.splitPlatform, sealCode: appraisal.sealCode,
-    }).then(({ product }) => {
-      setCatalog((list) => list.map((p) => (p.sealCode === product.sealCode ? { ...p, id: product.id } : p)));
-      setConsignments((list) => list.map((c) => (c.id === id ? { ...c, productId: product.id } : c)));
-    }).catch(() => { /* keep local */ });
   };
 
-  const rejectAppraisal = (id) => {
-    setConsignments((list) => list.map((c) => (c.id === id ? { ...c, status: "rejected" } : c)));
-    setAppraisalItem(null);
-    apiAdmin(`/admin/consignments/${id}/reject`).catch(() => { /* keep local */ });
-  };
+  const rejectAppraisal = (id) => { setConsignments((list) => list.map((c) => (c.id === id ? { ...c, status: "rejected" } : c))); setAppraisalItem(null); };
 
   const compareProducts = catalog.filter((p) => compareIds.includes(p.id));
   const pendingAppraisals = consignments.filter((c) => c.status === "pending");
@@ -1501,7 +1364,7 @@ export default function App({ onExit }) {
     <div style={{ background: T.bg, minHeight: "100vh", fontFamily: F.body }}>
       <style>{GLOBAL_CSS}</style>
       <div className="rm-shell">
-        <Sidebar screen={screen} setScreen={setScreen} role={role} setRole={changeRole} pendingRentalCount={pendingRentalCount} pendingAppraisalCount={pendingAppraisalCount} compareCount={compareIds.length} onAdd={() => setAddConsignModalOpen(true)} onExit={onExit} />
+        <Sidebar screen={screen} setScreen={setScreen} role={role} setRole={changeRole} pendingRentalCount={pendingRentalCount} pendingAppraisalCount={pendingAppraisalCount} compareCount={compareIds.length} onAdd={() => setAddConsignModalOpen(true)} />
         <main className="rm-main" style={{ padding: "28px 32px 90px", maxWidth: 1080, margin: "0 auto", width: "100%" }}>
           {screen === "detail" && (
             <button onClick={() => setScreen("home")} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", cursor: "pointer", padding: 0, marginBottom: 16, fontFamily: F.body, fontSize: 12.5, color: T.inkSoft }}>← Quay lại danh sách</button>

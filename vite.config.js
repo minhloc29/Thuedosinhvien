@@ -6,4 +6,12 @@ export default defineConfig({
   // Relative base so the build works wherever it's hosted: at the root
   // (Vercel) or under a repo sub-path (GitHub Pages). No hardcoded path.
   base: "./",
+  server: {
+    // Dev: forward /api/* and /auth/* to the Express backend so the frontend
+    // can call same-origin URLs without CORS/config juggling.
+    proxy: {
+      "/api": { target: "http://localhost:4000", changeOrigin: true },
+      "/auth": { target: "http://localhost:4000", changeOrigin: true },
+    },
+  },
 });
