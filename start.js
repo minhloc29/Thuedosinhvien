@@ -13,6 +13,13 @@
 
 import { execSync } from "node:child_process";
 
+// Local machines often run behind a corporate proxy (HTTPS_PROXY / http_proxy).
+// Those vars make Prisma unable to reach the Neon Postgres host (P1001). Strip
+// them for this process's child commands so the DB / npm / build work regardless.
+for (const k of ["HTTPS_PROXY", "https_proxy", "HTTP_PROXY", "http_proxy", "ALL_PROXY", "all_proxy"]) {
+  delete process.env[k];
+}
+
 const step = (msg) => console.log(`\n==> ${msg}`);
 
 step("Install backend dependencies (server/)");
