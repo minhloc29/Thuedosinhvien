@@ -381,7 +381,7 @@ function Sidebar({ screen, setScreen, role, setRole, pendingRentalCount, compare
   return (
     <aside className="rm-sidebar" style={{ background: T.surface, borderRight: `1px solid ${T.line}`, padding: "24px 16px", display: "flex", flexDirection: "column" }}>
       <div onClick={onExit} style={{ display: "flex", alignItems: "center", gap: 9, padding: "0 6px 26px", cursor: onExit ? "pointer" : "default" }}>
-        <div style={{ width: 30, height: 30, borderRadius: 9, background: T.ink, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15 }}>\uD83D\uDCE6</div>
+        <div style={{ width: 30, height: 30, borderRadius: 9, background: T.ink, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15 }}></div>
         <span style={{ fontFamily: F.display, fontSize: 16.5, fontWeight: 700, color: T.ink }}>LabShare</span>
       </div>
 
@@ -956,7 +956,7 @@ function MyRentalsScreen({ bookings, catalog, onOpenQR, onOpenReturn }) {
       <PageHeader title="Đơn thuê của tôi" subtitle="Theo dõi trạng thái các thiết bị bạn đã thuê." />
       {mine.length === 0 ? (
         <div style={{ textAlign: "center", marginTop: 60 }}>
-          <p style={{ fontSize: 36, marginBottom: 10 }}>\uD83D\uDCE6</p>
+          <p style={{ fontSize: 36, marginBottom: 10 }}></p>
           <p style={{ fontFamily: F.display, fontSize: 15.5, fontWeight: 600, color: T.ink, margin: 0 }}>Chưa có đơn thuê nào</p>
           <p style={{ fontFamily: F.body, fontSize: 12.5, color: T.inkFaint, marginTop: 6 }}>Tìm thiết bị ở trang chủ để bắt đầu thuê.</p>
         </div>

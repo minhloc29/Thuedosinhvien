@@ -1,9 +1,3 @@
-// ---------------------------------------------------------------------------
-// LabShare Admin — separate frontend served at /admin.html.
-// Admin-only: only accounts with isAdmin:true can get past the login gate.
-// Screens: Chờ thẩm định, Đơn thuê chờ duyệt, Tổng quan vận hành (sổ cái),
-// Cá nhân. Live data from the /api/admin/* endpoints via the shared session.
-// ---------------------------------------------------------------------------
 import React, { useState, useEffect, useMemo } from "react";
 import {
   X, Check, ClipboardCheck, Package, BarChart3, User, ShieldCheck,

@@ -20,8 +20,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Health + root probe.
-app.get("/", (req, res) => res.json({ service: "labshare-api", ok: true }));
+// The Vite build emits both index.html (user app) and admin.html into dist/.
+// When a build exists (production), express serves it and the root `/` probe
+// is intentionally NOT registered so `/` returns the app HTML (not JSON).
+const dist = path.resolve(__dirname, "../../dist");
+const hasBuild = fs.existsSync(path.join(dist, "index.html"));
+
+// API-only / dev mode (no build yet): expose a simple root probe.
+if (!hasBuild) {
+  app.get("/", (req, res) => res.json({ service: "labshare-api", ok: true }));
+}
 
 // Phase 1: Auth.
 app.use("/auth", authRouter);
@@ -40,14 +48,11 @@ app.use("/api/admin", adminRouter);
 app.use("/api/bookings", bookingsRouter);
 
 // Production: serve the built frontend (dist/) alongside the API so a single
-// Render Web Service hosts both the UI and the API on one origin. The Vite
-// build emits both index.html (user app) and admin.html into dist/. Skipped
-// when no build exists yet (pure-API/dev runs keep working untouched).
-const dist = path.resolve(__dirname, "../../dist");
-if (fs.existsSync(path.join(dist, "index.html"))) {
+// Render Web Service hosts both the UI and the API on one origin.
+if (hasBuild) {
   app.use(express.static(dist));
-  // SPA fallback: any non-API, non-asset path (e.g. deep links, /admin.html
-  // handled by express.static; unknown routes) resolves to the user app HTML.
+  // SPA fallback: any non-API, non-asset path (deep links, /admin.html handled
+  // by express.static, and "/") resolves to the user app HTML.
   app.get(/^\/(?!api\/|auth\/|assets\/).*/, (req, res) => {
     res.sendFile(path.join(dist, "index.html"));
   });

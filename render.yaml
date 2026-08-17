@@ -1,0 +1,29 @@
+# Render Blueprint for LabShare — single Web Service serving the API + the
+# built React app (user FE + admin FE) from one origin.
+#
+# To deploy:
+#   1. Create a Neon Postgres database and copy its connection string.
+#   2. Use this file (Render dashboard -> New -> Blueprint -> connect this repo),
+#      or set DATABASE_URL + JWT_SECRET as env vars on a manually-created service.
+#   3. Paste DATABASE_URL (Neon) and a long random JWT_SECRET in the service's
+#      Environment settings (they are sync:false so Render prompts for them).
+#
+# start.js handles: server deps install -> prisma migrate deploy -> vite build
+# -> express start. Render runs it for both build and start; it is idempotent.
+
+services:
+  - type: web
+    name: labshare
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm install
+    startCommand: node start.js
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: DATABASE_URL
+        sync: false   # paste your Neon connection string in Render
+      - key: JWT_SECRET
+        sync: false   # long random string, e.g. openssl rand -hex 32
