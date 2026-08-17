@@ -48,29 +48,26 @@ const catInfo = (id) => CATS.find((c) => c.id === id) || CATS[0];
 const money = (n) => Math.round(n).toLocaleString("vi-VN") + "đ";
 const moneyShort = (n) => (n >= 1000000 ? (n / 1000000).toFixed(n % 1000000 === 0 ? 0 : 1) + "tr" : Math.round(n / 1000) + "k");
 
-const CURRENT_USER = "Minh Quân (K67)";
-const CURRENT_USER_RENTER_LABEL = "Bạn (Minh Quân - K67)";
+// The signed-in identity. Updated on login; because login triggers a re-render,
+// components reading these (MyConsignments, MyRentals, Profile…) pick up the
+// real user's name. Falls back to a demo label before any login happens.
+let CURRENT_USER = "Minh Quân (K67)";
+let CURRENT_USER_RENTER_LABEL = "Bạn (Minh Quân - K67)";
 
 // ---------------------------------------------------------------------------
-// Minimal API helper for Phase 3 (consignment + admin appraisal).
-// Demo build logs in once with the seeded senior/admin accounts and caches the
-// token. If the backend is unreachable, callers fall back to local state so the
-// prototype keeps working standalone.
+// API helper (session-based). No auto-login: every call carries the token the
+// user obtained on the AuthScreen. If there's no session (e.g. backend down),
+// callers fall back to local state so the prototype still renders.
 // ---------------------------------------------------------------------------
-let API_TOKEN = null;
-let API_TOKEN_PROMISE = null;
-function apiToken() {
-  if (API_TOKEN) return Promise.resolve(API_TOKEN);
-  if (!API_TOKEN_PROMISE) {
-    API_TOKEN_PROMISE = fetch("/auth/login", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: "minhquan@bk.edu.vn", password: "password123" }),
-    })
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("login failed"))))
-      .then(({ token }) => { API_TOKEN = token; return token; })
-      .catch((e) => { API_TOKEN_PROMISE = null; throw e; });
+let SESSION_TOKEN = typeof localStorage !== "undefined" ? localStorage.getItem("labshare_token") || null : null;
+function setSession(token, user) {
+  SESSION_TOKEN = token;
+  if (token) localStorage.setItem("labshare_token", token);
+  else localStorage.removeItem("labshare_token");
+  if (user) {
+    CURRENT_USER = user.name;
+    CURRENT_USER_RENTER_LABEL = `Bạn (${user.name})`;
   }
-  return API_TOKEN_PROMISE;
 }
 function api(path, options = {}, body) {
   const opts = { headers: {}, ...options };
@@ -79,46 +76,15 @@ function api(path, options = {}, body) {
     opts.headers["Content-Type"] = "application/json";
     opts.body = JSON.stringify(body);
   }
-  return apiToken().then((token) => {
-    opts.headers["Authorization"] = "Bearer " + token;
-    return fetch("/api" + path, opts).then((r) => {
-      if (!r.ok) return r.json().then((j) => Promise.reject(new Error(j.error || "API error")));
-      return r.status === 204 ? null : r.json();
-    });
-  });
-}
-
-// Admin-token variant — used by the appraisal-queue actions (approve/reject).
-let API_ADMIN_TOKEN = null;
-let API_ADMIN_TOKEN_PROMISE = null;
-function apiAdmin(path, options = {}, body) {
-  if (!API_ADMIN_TOKEN) {
-    if (!API_ADMIN_TOKEN_PROMISE) {
-      API_ADMIN_TOKEN_PROMISE = fetch("/auth/login", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "admin@labshare.vn", password: "password123" }),
-      })
-        .then((r) => (r.ok ? r.json() : Promise.reject(new Error("admin login failed"))))
-        .then(({ token }) => { API_ADMIN_TOKEN = token; return token; })
-        .catch((e) => { API_ADMIN_TOKEN_PROMISE = null; throw e; });
-    }
-    return API_ADMIN_TOKEN_PROMISE.then((token) => adminCall(token, path, options, body));
-  }
-  return adminCall(API_ADMIN_TOKEN, path, options, body);
-}
-function adminCall(token, path, options = {}, body) {
-  const opts = { headers: {}, ...options };
-  if (body !== undefined) {
-    opts.method = opts.method || "POST";
-    opts.headers["Content-Type"] = "application/json";
-    opts.body = JSON.stringify(body);
-  }
-  opts.headers["Authorization"] = "Bearer " + token;
+  if (SESSION_TOKEN) opts.headers["Authorization"] = "Bearer " + SESSION_TOKEN;
   return fetch("/api" + path, opts).then((r) => {
     if (!r.ok) return r.json().then((j) => Promise.reject(new Error(j.error || "API error")));
     return r.status === 204 ? null : r.json();
   });
 }
+// Admin endpoints use the same session token; the backend gates them by role
+// (403 for non-admin), and callers fall back to local state on failure.
+const apiAdmin = api;
 
 // ---------------------------------------------------------------------------
 // Mock data — approved catalogue (already appraised & sealed by LabShare)
@@ -1346,14 +1312,15 @@ function AddConsignmentModal({ onClose, onSubmit }) {
 // Profile
 // ---------------------------------------------------------------------------
 
-function ProfileScreen({ role, setRole }) {
+function ProfileScreen({ role, setRole, onLogout }) {
   const roleLabels = { renter: "Người thuê", senior: "Senior ký gửi", admin: "Admin vận hành" };
+  const initial = (CURRENT_USER || "?").charAt(0).toUpperCase();
   return (
     <div>
       <PageHeader title="Cá nhân" />
       <Card style={{ padding: 20, maxWidth: 420 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ width: 52, height: 52, borderRadius: "50%", background: T.accentBg, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: F.display, fontWeight: 700, fontSize: 18, color: T.accentDeep }}>M</div>
+          <div style={{ width: 52, height: 52, borderRadius: "50%", background: T.accentBg, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: F.display, fontWeight: 700, fontSize: 18, color: T.accentDeep }}>{initial}</div>
           <div>
             <p style={{ fontFamily: F.display, fontSize: 16, fontWeight: 600, color: T.ink, margin: 0 }}>{CURRENT_USER}</p>
             <p style={{ fontFamily: F.body, fontSize: 12, color: T.inkFaint, margin: "2px 0 0" }}>Sinh viên · Bách Khoa Hà Nội</p>
@@ -1369,6 +1336,13 @@ function ProfileScreen({ role, setRole }) {
             }}>{roleLabels[r]}</button>
           ))}
         </div>
+        {onLogout && (
+          <button onClick={onLogout} style={{
+            marginTop: 20, width: "100%", padding: "10px 0", borderRadius: 10,
+            border: `1.5px solid ${T.line}`, background: T.surface, color: T.inkSoft,
+            fontFamily: F.body, fontSize: 13, fontWeight: 600, cursor: "pointer",
+          }}>Đăng xuất</button>
+        )}
       </Card>
     </div>
   );
@@ -1377,6 +1351,117 @@ function ProfileScreen({ role, setRole }) {
 // ---------------------------------------------------------------------------
 // Root app
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Auth — login / register (uses /auth endpoints)
+// ---------------------------------------------------------------------------
+
+// Quick demo accounts (seeded in the backend).
+const DEMO_ACCOUNTS = [
+  { label: "Người thuê", name: "Thu Trang", email: "thutrang@bk.edu.vn", emoji: "🧑‍🎓" },
+  { label: "Senior", name: "Đức Anh", email: "ducanh@bk.edu.vn", emoji: "🎓" },
+  { label: "Admin", name: "LabShare Admin", email: "admin@labshare.vn", emoji: "🛠️" },
+];
+const DEMO_PASSWORD = "password123";
+
+function AuthScreen({ onLogin, onBack }) {
+  const [mode, setMode] = useState("login"); // login | register
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [form, setForm] = useState({ name: "", studentId: "", email: "", password: "" });
+  const update = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
+
+  const doAuth = (payload) => {
+    setBusy(true); setError("");
+    fetch("/auth/" + mode, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+      .then((r) => r.json().then((j) => ({ ok: r.ok, j })))
+      .then(({ ok, j }) => {
+        if (!ok) return setError(j.error || "Đăng nhập thất bại");
+        onLogin(j.token, j.user);
+      })
+      .catch(() => setError("Không kết nối được server. Kiểm tra backend đã chạy."))
+      .finally(() => setBusy(false));
+  };
+
+  const submit = (e) => {
+    e.preventDefault();
+    if (!form.email || !form.password) return setError("Nhập email và mật khẩu.");
+    if (mode === "register" && !form.name) return setError("Nhập tên của bạn.");
+    doAuth({
+      name: form.name, studentId: form.studentId || undefined,
+      email: form.email.trim(), password: form.password,
+    });
+  };
+
+  const quickLogin = (email) => doAuth({ email, password: DEMO_PASSWORD });
+
+  return (
+    <div style={{ minHeight: "100vh", background: T.bg, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+      <Card style={{ width: "100%", maxWidth: 400, padding: 26 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+          <div style={{ fontSize: 26 }}>🏷️</div>
+          <span style={{ fontFamily: F.display, fontWeight: 700, fontSize: 19, color: T.ink }}>LabShare</span>
+        </div>
+        <p style={{ fontFamily: F.body, fontSize: 12.5, color: T.inkFaint, margin: "2px 0 18px" }}>{mode === "login" ? "Đăng nhập để tiếp tục" : "Tạo tài khoản mới"}</p>
+
+        <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+          {["login", "register"].map((m) => (
+            <button key={m} onClick={() => { setMode(m); setError(""); }} style={{
+              flex: 1, padding: "9px 0", borderRadius: 10, border: `1.5px solid ${mode === m ? T.ink : T.line}`,
+              background: mode === m ? T.ink : T.surface, color: mode === m ? "#fff" : T.inkSoft,
+              fontFamily: F.body, fontSize: 13, fontWeight: 600, cursor: "pointer",
+            }}>{m === "login" ? "Đăng nhập" : "Đăng ký"}</button>
+          ))}
+        </div>
+
+        <form onSubmit={submit}>
+          {mode === "register" && (
+            <>
+              <label style={labelStyle}>Tên</label>
+              <input style={fieldStyle} value={form.name} onChange={update("name")} placeholder="VD: Nguyễn Văn A" />
+              <label style={{ ...labelStyle, display: "block", marginTop: 12 }}>Mã SV (tuỳ chọn)</label>
+              <input style={fieldStyle} value={form.studentId} onChange={update("studentId")} placeholder="2022A123" />
+            </>
+          )}
+          <label style={labelStyle}>Email</label>
+          <input style={fieldStyle} type="email" value={form.email} onChange={update("email")} placeholder="ban@bk.edu.vn" />
+          <label style={{ ...labelStyle, display: "block", marginTop: 12 }}>Mật khẩu</label>
+          <input style={fieldStyle} type="password" value={form.password} onChange={update("password")} placeholder="••••••••" />
+          {error && <p style={{ fontFamily: F.body, fontSize: 12, color: T.danger, marginTop: 10 }}>{error}</p>}
+          <PrimaryButton style={{ marginTop: 16, width: "100%" }} disabled={busy}>
+            {busy ? "Đang xử lý…" : mode === "login" ? "Đăng nhập" : "Tạo tài khoản"}
+          </PrimaryButton>
+        </form>
+
+        {mode === "login" && (
+          <div style={{ marginTop: 18, paddingTop: 16, borderTop: `1px dashed ${T.line}` }}>
+            <p style={{ fontFamily: F.body, fontSize: 11.5, color: T.inkFaint, margin: "0 0 8px" }}>Đăng nhập nhanh (demo):</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {DEMO_ACCOUNTS.map((a) => (
+                <button key={a.email} onClick={() => quickLogin(a.email)} disabled={busy} style={{
+                  display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "8px 10px",
+                  borderRadius: 9, border: `1px solid ${T.line}`, background: T.surface,
+                  cursor: "pointer", textAlign: "left",
+                }}>
+                  <span style={{ fontSize: 16 }}>{a.emoji}</span>
+                  <span style={{ flex: 1 }}>
+                    <span style={{ display: "block", fontFamily: F.body, fontSize: 12.5, fontWeight: 600, color: T.ink }}>{a.name} — {a.label}</span>
+                    <span style={{ fontFamily: F.mono, fontSize: 10.5, color: T.inkFaint }}>{a.email}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <button onClick={onBack} style={{ marginTop: 18, background: "none", border: "none", cursor: "pointer", fontFamily: F.body, fontSize: 12, color: T.inkFaint, padding: 0 }}>← Về trang chủ</button>
+      </Card>
+    </div>
+  );
+}
 
 const ROLE_DEFAULT_SCREEN = { renter: "home", senior: "myConsignments", admin: "appraisalQueue" };
 
@@ -1401,6 +1486,9 @@ export default function App({ onExit }) {
   const [catalog, setCatalog] = useState(SEED_PRODUCTS);
   const [consignments, setConsignments] = useState(seedConsignments);
   const [bookings, setBookings] = useState(seedBookings);
+
+  // Login gate: an existing token in localStorage keeps you signed in.
+  const [authed, setAuthed] = useState(() => !!SESSION_TOKEN);
 
   // Phase 2: hydrate the catalog from the backend on mount. We keep the local
   // SEED data as the instant fallback, then merge in DB/API values where the
@@ -1427,6 +1515,16 @@ export default function App({ onExit }) {
       .catch(() => { /* keep SEED fallback if API is down */ });
     return () => { active = false; };
   }, []);
+
+  // Not signed in → show the auth screen instead of the app.
+  if (!authed) {
+    return (
+      <AuthScreen
+        onLogin={(token, user) => { setSession(token, user); setAuthed(true); }}
+        onBack={onExit}
+      />
+    );
+  }
 
   const changeRole = (r) => { setRole(r); setScreen(ROLE_DEFAULT_SCREEN[r]); };
 
@@ -1552,7 +1650,7 @@ export default function App({ onExit }) {
   } else if (screen === "overview") {
     body = <OverviewScreen catalog={catalog} bookings={bookings} consignments={consignments} />;
   } else if (screen === "profile") {
-    body = <ProfileScreen role={role} setRole={changeRole} />;
+    body = <ProfileScreen role={role} setRole={changeRole} onLogout={() => { setSession(null); setAuthed(false); }} />;
   }
 
   return (
