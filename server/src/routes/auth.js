@@ -11,20 +11,32 @@ router.post("/register", async (req, res) => {
     if (!name || !email || !password) {
       return res.status(400).json({ error: "name, email, password are required" });
     }
-    const exists = await prisma.user.findUnique({ where: { email: String(email).toLowerCase() } });
+    const emailNorm = String(email).toLowerCase();
+    const studentIdNorm = studentId ? String(studentId).trim() : null;
+    const exists = await prisma.user.findUnique({ where: { email: emailNorm } });
     if (exists) return res.status(409).json({ error: "Email already registered" });
+
+    // @unique on studentId: fail fast with a clear message instead of a raw 500.
+    if (studentIdNorm) {
+      const sidTaken = await prisma.user.findFirst({ where: { studentId: studentIdNorm } });
+      if (sidTaken) return res.status(409).json({ error: "Student ID already registered" });
+    }
 
     const user = await prisma.user.create({
       data: {
         name: String(name),
-        studentId: studentId ? String(studentId) : null,
-        email: String(email).toLowerCase(),
+        studentId: studentIdNorm,
+        email: emailNorm,
         passwordHash: await hashPassword(String(password)),
       },
     });
     const token = signToken(user);
     return res.status(201).json({ token, user: publicUser(user) });
   } catch (e) {
+    // Safety net for any other unique-constraint violation (P2002).
+    if (e && e.code === "P2002") {
+      return res.status(409).json({ error: `${e.meta?.target?.[0] || "Field"} already registered` });
+    }
     console.error(e);
     return res.status(500).json({ error: "Internal error" });
   }

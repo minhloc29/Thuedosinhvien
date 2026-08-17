@@ -5,7 +5,7 @@ import {
   Search, ShieldCheck, Timer, ArrowRight, MapPin,
   Check, Sparkles, Wallet, Boxes, Microscope, Cpu, CircuitBoard,
   GraduationCap, BadgeCheck, PackageCheck,
-} from "lucide-react";
+} from "../../lib/icons";
 
 // =====================================================================
 // LabShare — landing page (MVP).
@@ -231,9 +231,9 @@ export default function LandingPage({ onEnter }) {
       <Section kicker="Vấn đề" title="Bạn đang gặp vấn đề này?" sub="Đừng để việc thiếu thiết bị chặn project của bạn — có cách rẻ hơn nhiều.">
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
           {[
-            { icon: Wallet, title: "💰 Thiết bị đắt", desc: "Một project chỉ cần dùng vài tuần nhưng phải bỏ hàng triệu đồng để mua." },
-            { icon: Timer, title: "⏰ Phụ thuộc phòng lab", desc: "Thiết bị có nhưng không phải lúc nào cũng dùng được, khó mang ra ngoài." },
-            { icon: Search, title: "🤔 Không biết cần mua gì", desc: "Mới làm project, bạn thường không biết chính xác bộ thiết bị nào phù hợp." },
+            { icon: Wallet, title: "Thiết bị đắt", desc: "Một project chỉ cần dùng vài tuần nhưng phải bỏ hàng triệu đồng để mua." },
+            { icon: Timer, title: "Phụ thuộc phòng lab", desc: "Thiết bị có nhưng không phải lúc nào cũng dùng được, khó mang ra ngoài." },
+            { icon: Search, title: "Không biết cần mua gì", desc: "Mới làm project, bạn thường không biết chính xác bộ thiết bị nào phù hợp." },
           ].map((p) => (
             <Card key={p.title}><p.icon size={22} color={T.accentDeep} /><h3 style={{ fontFamily: F.display, fontSize: 17, fontWeight: 700, margin: "12px 0 8px" }}>{p.title}</h3><p style={{ fontFamily: F.body, fontSize: 13.5, color: T.inkSoft, lineHeight: 1.65, margin: 0 }}>{p.desc}</p></Card>
           ))}
@@ -309,7 +309,7 @@ export default function LandingPage({ onEnter }) {
       </Section>
 
       {/* ---------- ④ Featured kits ---------- */}
-      <Section id="kits" kicker="Bộ thiết bị phổ biến" title="🔥 Các bộ thiết bị phổ biến" sub="Chọn theo nhu cầu của project — không cần biết tên model.">
+      <Section id="kits" kicker="Bộ thiết bị phổ biến" title="Các bộ thiết bị phổ biến" sub="Chọn theo nhu cầu của project — không cần biết tên model.">
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
           {KITS.map((k) => (
             <div key={k.name} style={{ background: T.surface, border: `1px solid ${T.line}`, borderRadius: 18, padding: 22 }}>

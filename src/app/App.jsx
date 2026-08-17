@@ -1,14 +1,14 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import {
-  Search, Plus, Check, X, Home as HomeIcon, User, ShieldCheck, ArrowRight,
-  Wallet, Package, Tag, Scale, ClipboardCheck, BarChart3, MapPin, Star
-} from "lucide-react";
+  Search, Plus, Check, X, HomeIcon, User, ShieldCheck, ArrowRight,
+  Wallet, Package, Tag, Scale, MapPin, Star, StarBorder,
+} from "../lib/icons";
 
 // ---------------------------------------------------------------------------
 // Design tokens
 // ---------------------------------------------------------------------------
 const GLOBAL_CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap');
 * { box-sizing: border-box; }
 .rm-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
 .rm-scroll::-webkit-scrollbar-thumb { background: #D8DEE6; border-radius: 8px; }
@@ -36,13 +36,17 @@ const T = {
   green: "#3C7A45", greenBg: "#E7F3E8",
   purple: "#5B4FA8", purpleBg: "#EBE8F7",
 };
-const F = { display: "'Space Grotesk',sans-serif", body: "'Inter',sans-serif", mono: "'JetBrains Mono',monospace" };
+const F = {
+  display: "'Fraunces', ui-serif, 'New York', Georgia, 'Times New Roman', serif",
+  body: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+  mono: "ui-monospace, 'SF Mono', Menlo, Consolas, monospace",
+};
 
 const CATS = [
-  { id: "do-luong", label: "Đo lường", emoji: "\uD83D\uDCDF" },
-  { id: "vi-dieu-khien", label: "Vi điều khiển", emoji: "\uD83D\uDD27" },
-  { id: "plc", label: "PLC/Tự động hoá", emoji: "\u2699\uFE0F" },
-  { id: "khac", label: "Khác", emoji: "\uD83E\uDDF0" },
+  { id: "do-luong", label: "Đo lường" },
+  { id: "vi-dieu-khien", label: "Vi điều khiển" },
+  { id: "plc", label: "PLC/Tự động hoá" },
+  { id: "khac", label: "Khác" },
 ];
 const catInfo = (id) => CATS.find((c) => c.id === id) || CATS[0];
 const money = (n) => Math.round(n).toLocaleString("vi-VN") + "đ";
@@ -60,10 +64,23 @@ let CURRENT_USER_RENTER_LABEL = "Bạn (Minh Quân - K67)";
 // callers fall back to local state so the prototype still renders.
 // ---------------------------------------------------------------------------
 let SESSION_TOKEN = typeof localStorage !== "undefined" ? localStorage.getItem("labshare_token") || null : null;
+// Persisted session user (name/isAdmin/email) so a refreshed app doesn't
+// silently fall back to the default persona. Kept in sync with the token.
+let SESSION_USER =
+  typeof localStorage !== "undefined" ? (() => {
+    try { return JSON.parse(localStorage.getItem("labshare_user") || "null"); }
+    catch { return null; }
+  })() : null;
 function setSession(token, user) {
   SESSION_TOKEN = token;
-  if (token) localStorage.setItem("labshare_token", token);
-  else localStorage.removeItem("labshare_token");
+  SESSION_USER = user || null;
+  if (token) {
+    localStorage.setItem("labshare_token", token);
+    if (user) localStorage.setItem("labshare_user", JSON.stringify(user));
+  } else {
+    localStorage.removeItem("labshare_token");
+    localStorage.removeItem("labshare_user");
+  }
   if (user) {
     CURRENT_USER = user.name;
     CURRENT_USER_RENTER_LABEL = `Bạn (${user.name})`;
@@ -93,7 +110,7 @@ const SEED_PRODUCTS = [
   {
     id: "p1", name: "Oscilloscope Rigol DS1102Z-E", category: "do-luong", price: 90000,
     marketValue: 9000000, grade: "A", seniorName: "Đức Anh (K66)", rating: 4.9, rentedCount: 14,
-    emoji: "\uD83D\uDCDF", sealCode: "LS-0198", appraisedDate: "02/08/2026", lastTestedDate: "12/08/2026",
+    sealCode: "LS-0198", appraisedDate: "02/08/2026", lastTestedDate: "12/08/2026",
     desc: "Oscilloscope 2 kênh 100MHz, phù hợp đo tín hiệu số/analog cho đồ án và bài lab Điện tử.",
     specs: [
       { label: "Dải tần", value: "100MHz" }, { label: "Số kênh", value: "2 kênh" },
@@ -105,7 +122,7 @@ const SEED_PRODUCTS = [
   {
     id: "p2", name: "Function Generator FY6900", category: "do-luong", price: 60000,
     marketValue: 3500000, grade: "A", seniorName: "Đức Anh (K66)", rating: 4.8, rentedCount: 9,
-    emoji: "\uD83D\uDCDF", sealCode: "LS-0201", appraisedDate: "03/08/2026", lastTestedDate: "11/08/2026",
+    sealCode: "LS-0201", appraisedDate: "03/08/2026", lastTestedDate: "11/08/2026",
     desc: "Máy phát xung đa dạng sóng, dùng kiểm tra mạch tương tự/số cho bài lab.",
     specs: [
       { label: "Dải tần", value: "0–60MHz" }, { label: "Dạng sóng", value: "Sin/Vuông/Tam giác/Xung" },
@@ -117,7 +134,7 @@ const SEED_PRODUCTS = [
   {
     id: "p3", name: "Nguồn tổ ong DC 30V/5A", category: "do-luong", price: 35000,
     marketValue: 1200000, grade: "B", seniorName: "Thu Trang (K65)", rating: 4.6, rentedCount: 21,
-    emoji: "\uD83D\uDD0C", sealCode: "LS-0155", appraisedDate: "28/07/2026", lastTestedDate: "10/08/2026",
+    sealCode: "LS-0155", appraisedDate: "28/07/2026", lastTestedDate: "10/08/2026",
     desc: "Nguồn một chiều điều chỉnh được, thiết bị được thuê nhiều nhất mùa lab.",
     specs: [
       { label: "Điện áp ra", value: "0–30V" }, { label: "Dòng ra", value: "0–5A" },
@@ -129,7 +146,7 @@ const SEED_PRODUCTS = [
   {
     id: "p4", name: "Kit Arduino Uno R3 + 10 cảm biến", category: "vi-dieu-khien", price: 25000,
     marketValue: 650000, grade: "A", seniorName: CURRENT_USER, rating: 4.9, rentedCount: 17,
-    emoji: "\uD83D\uDD27", sealCode: "LS-0212", appraisedDate: "05/08/2026", lastTestedDate: "13/08/2026",
+    sealCode: "LS-0212", appraisedDate: "05/08/2026", lastTestedDate: "13/08/2026",
     desc: "Bộ kit Arduino phổ biến nhất cho môn nhập môn IoT/vi điều khiển.",
     specs: [
       { label: "Board", value: "Arduino Uno R3 chính hãng" }, { label: "Cảm biến kèm theo", value: "10 loại (nhiệt độ, siêu âm, PIR...)" },
@@ -141,7 +158,7 @@ const SEED_PRODUCTS = [
   {
     id: "p5", name: "Kit STM32F103C8T6 (Blue Pill)", category: "vi-dieu-khien", price: 20000,
     marketValue: 450000, grade: "B", seniorName: CURRENT_USER, rating: 4.5, rentedCount: 6,
-    emoji: "\uD83D\uDD27", sealCode: "LS-0225", appraisedDate: "07/08/2026", lastTestedDate: "13/08/2026",
+    sealCode: "LS-0225", appraisedDate: "07/08/2026", lastTestedDate: "13/08/2026",
     desc: "Board STM32 phổ biến cho môn Vi xử lý, kèm mạch nạp sẵn.",
     specs: [
       { label: "Vi điều khiển", value: "STM32F103C8T6" }, { label: "Mạch nạp", value: "ST-Link V2 kèm theo" },
@@ -153,7 +170,7 @@ const SEED_PRODUCTS = [
   {
     id: "p6", name: "Raspberry Pi 4 Model B (4GB)", category: "vi-dieu-khien", price: 40000,
     marketValue: 1800000, grade: "A", seniorName: "Thu Trang (K65)", rating: 4.8, rentedCount: 11,
-    emoji: "\uD83D\uDCBB", sealCode: "LS-0219", appraisedDate: "06/08/2026", lastTestedDate: "12/08/2026",
+     sealCode: "LS-0219", appraisedDate: "06/08/2026", lastTestedDate: "12/08/2026",
     desc: "Máy tính nhúng cho đồ án IoT/server mini, đã cài sẵn Raspbian.",
     specs: [
       { label: "RAM", value: "4GB" }, { label: "Thẻ nhớ", value: "32GB kèm hệ điều hành" },
@@ -165,7 +182,7 @@ const SEED_PRODUCTS = [
   {
     id: "p7", name: "Kit PLC Mini Siemens LOGO!", category: "plc", price: 70000,
     marketValue: 4500000, grade: "A", seniorName: "Đức Anh (K66)", rating: 4.7, rentedCount: 5,
-    emoji: "\u2699\uFE0F", sealCode: "LS-0233", appraisedDate: "09/08/2026", lastTestedDate: "13/08/2026",
+    sealCode: "LS-0233", appraisedDate: "09/08/2026", lastTestedDate: "13/08/2026",
     desc: "Bộ PLC mini cho môn Tự động hoá và các đội thi Robocon.",
     specs: [
       { label: "Dòng PLC", value: "Siemens LOGO! 12/24RCE" }, { label: "Ngõ vào/ra", value: "8 vào / 4 ra" },
@@ -177,7 +194,7 @@ const SEED_PRODUCTS = [
   {
     id: "p8", name: "Logic Analyzer 8-channel USB", category: "do-luong", price: 30000,
     marketValue: 550000, grade: "B", seniorName: "Thu Trang (K65)", rating: 4.6, rentedCount: 8,
-    emoji: "\uD83D\uDCCA", sealCode: "LS-0207", appraisedDate: "04/08/2026", lastTestedDate: "11/08/2026",
+    sealCode: "LS-0207", appraisedDate: "04/08/2026", lastTestedDate: "11/08/2026",
     desc: "Dùng phân tích tín hiệu số cho đồ án nhúng/IoT, tương thích PulseView.",
     specs: [
       { label: "Số kênh", value: "8 kênh" }, { label: "Tốc độ lấy mẫu", value: "24MHz" },
@@ -189,10 +206,10 @@ const SEED_PRODUCTS = [
 ];
 
 const PROJECT_BUNDLES = [
-  { id: "iot", label: "Dự án IoT", emoji: "\uD83D\uDCE1", productIds: ["p4", "p6", "p8"] },
-  { id: "doan", label: "Đồ án tốt nghiệp Điện tử", emoji: "\uD83C\uDF93", productIds: ["p1", "p2", "p3"] },
-  { id: "onthi", label: "Ôn thi / Lab định kỳ", emoji: "\uD83D\uDCD8", productIds: ["p2", "p3"] },
-  { id: "robocon", label: "Thi Robocon / PLC", emoji: "\uD83E\uDD16", productIds: ["p7", "p3"] },
+  { id: "iot", label: "Dự án IoT", productIds: ["p4", "p6", "p8"] },
+  { id: "doan", label: "Đồ án tốt nghiệp Điện tử", productIds: ["p1", "p2", "p3"] },
+  { id: "onthi", label: "Ôn thi / Lab định kỳ", productIds: ["p2", "p3"] },
+  { id: "robocon", label: "Thi Robocon / PLC", productIds: ["p7", "p3"] },
 ];
 
 const PICKUP_POINTS = [
@@ -231,7 +248,9 @@ function Stars({ count, size = 12 }) {
   return (
     <span style={{ display: "inline-flex", gap: 1 }}>
       {Array.from({ length: 5 }).map((_, i) => (
-        <Star key={i} size={size} fill={i < full ? T.accent : "none"} color={i < full ? T.accent : T.line} strokeWidth={1.5} />
+        i < full
+          ? <Star key={i} size={size} color={T.accent} />
+          : <StarBorder key={i} size={size} color={T.line} />
       ))}
     </span>
   );
@@ -344,7 +363,7 @@ const labelStyle = { fontFamily: F.body, fontSize: 11.5, color: T.inkSoft, fontW
 // Sidebar (3 roles)
 // ---------------------------------------------------------------------------
 
-function Sidebar({ screen, setScreen, role, setRole, pendingRentalCount, pendingAppraisalCount, compareCount, onAdd, onExit }) {
+function Sidebar({ screen, setScreen, role, setRole, pendingRentalCount, compareCount, onAdd, onExit }) {
   const itemsByRole = {
     renter: [
       { id: "home", label: "Trang chủ", icon: HomeIcon },
@@ -355,15 +374,9 @@ function Sidebar({ screen, setScreen, role, setRole, pendingRentalCount, pending
       { id: "myConsignments", label: "Ký gửi của tôi", icon: Tag },
       { id: "profile", label: "Cá nhân", icon: User },
     ],
-    admin: [
-      { id: "appraisalQueue", label: "Chờ thẩm định", icon: ClipboardCheck, badge: pendingAppraisalCount },
-      { id: "rentalRequests", label: "Đơn thuê chờ duyệt", icon: Package, badge: pendingRentalCount },
-      { id: "overview", label: "Tổng quan vận hành", icon: BarChart3 },
-      { id: "profile", label: "Cá nhân", icon: User },
-    ],
   };
   const items = itemsByRole[role];
-  const roleLabels = { renter: "Người thuê", senior: "Senior ký gửi", admin: "Admin vận hành" };
+  const roleLabels = { renter: "Người thuê", senior: "Senior ký gửi" };
 
   return (
     <aside className="rm-sidebar" style={{ background: T.surface, borderRight: `1px solid ${T.line}`, padding: "24px 16px", display: "flex", flexDirection: "column" }}>
@@ -402,7 +415,7 @@ function Sidebar({ screen, setScreen, role, setRole, pendingRentalCount, pending
       <div style={{ marginTop: "auto", paddingTop: 20 }}>
         <p style={{ fontFamily: F.body, fontSize: 10.5, color: T.inkFaint, margin: "0 0 6px 6px", textTransform: "uppercase", letterSpacing: 0.4 }}>Chế độ xem</p>
         <div style={{ display: "flex", flexDirection: "column", gap: 4, background: T.bg, borderRadius: 10, padding: 3 }}>
-          {["renter", "senior", "admin"].map((r) => {
+          {["renter", "senior"].map((r) => {
             const isActive = role === r;
             return (
               <button key={r} onClick={() => setRole(r)} style={{
@@ -436,7 +449,7 @@ const MATCH_BADGES = (() => {
   const byRating = [...SEED_PRODUCTS].filter((p) => p.rentedCount >= 10).sort((a, b) => b.rating - a.rating)[0];
   const map = {};
   if (byRating) map[byRating.id] = { icon: "\u2B50", label: "Đánh giá cao nhất", bg: T.tealBg, fg: T.tealDeep };
-  if (byPrice && !map[byPrice.id]) map[byPrice.id] = { icon: "\uD83D\uDCB0", label: "Giá tốt nhất", bg: T.accentBg, fg: T.accentDeep };
+  if (byPrice && !map[byPrice.id]) map[byPrice.id] = {label: "Giá tốt nhất", bg: T.accentBg, fg: T.accentDeep };
   return map;
 })();
 
@@ -463,7 +476,7 @@ function ProductGridCard({ p, onClick, compareChecked, onToggleCompare }) {
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6 }}>
           <GradeBadge grade={p.grade} />
           <span style={{ display: "flex", alignItems: "center", gap: 3, fontFamily: F.body, fontSize: 11, color: T.inkSoft }}>
-            <Star size={10} fill={T.accent} color={T.accent} /> {p.rating}
+            <Star size={10} color={T.accent} /> {p.rating}
           </span>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10, paddingTop: 10, borderTop: `1px solid ${T.line}` }}>
@@ -472,7 +485,7 @@ function ProductGridCard({ p, onClick, compareChecked, onToggleCompare }) {
           </span>
           <ArrowRight size={14} color={T.inkFaint} />
         </div>
-        <p style={{ fontFamily: F.body, fontSize: 10.5, color: T.green, margin: "6px 0 0" }}>\uD83D\uDCB0 Tiết kiệm ~{savings.pct}% so với mua mới</p>
+        <p style={{ fontFamily: F.body, fontSize: 10.5, color: T.green, margin: "6px 0 0" }}> Tiết kiệm ~{savings.pct}% so với mua mới</p>
       </div>
     </Card>
   );
@@ -753,7 +766,7 @@ function BookingPanel({ product, onConfirm }) {
         <span style={{ fontFamily: F.mono, fontSize: 20, fontWeight: 700, color: T.ink }}>{money(product.price)}</span>
         <span style={{ fontFamily: F.body, fontSize: 12, color: T.inkFaint }}>/ ngày</span>
       </div>
-      <p style={{ fontFamily: F.body, fontSize: 11, color: T.green, margin: "0 0 14px" }}>\uD83D\uDCB0 Giá trị thị trường {moneyShort(product.marketValue)} — thuê tiết kiệm ~{savings.pct}%</p>
+      <p style={{ fontFamily: F.body, fontSize: 11, color: T.green, margin: "0 0 14px" }}>Giá trị thị trường {moneyShort(product.marketValue)} — thuê tiết kiệm ~{savings.pct}%</p>
 
       <AvailabilityCalendar product={product} start={start} end={end} onPick={pick} />
 
@@ -980,238 +993,6 @@ function MyRentalsScreen({ bookings, catalog, onOpenQR, onOpenReturn }) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Admin — appraisal queue
-// ---------------------------------------------------------------------------
-
-function AppraisalModal({ item, onClose, onApprove, onReject }) {
-  const [grade, setGrade] = useState("A");
-  const [price, setPrice] = useState(Math.round(item.estimatedValue * 0.01 / 5000) * 5000 || 20000);
-  const [marketValue, setMarketValue] = useState(item.estimatedValue);
-  const [splitSenior, setSplitSenior] = useState(item.estimatedValue > 2000000 ? 60 : 50);
-  const sealCode = useMemo(() => "LS-0" + Math.floor(200 + Math.random() * 90), []);
-
-  return (
-    <Modal onClose={onClose} width={460}>
-      <h2 style={{ fontFamily: F.display, fontSize: 18, fontWeight: 700, color: T.ink, margin: "0 0 4px" }}>Thẩm định ký gửi</h2>
-      <p style={{ fontFamily: F.body, fontSize: 12.5, color: T.inkFaint, margin: "0 0 16px" }}>{item.name} · Ký gửi bởi {item.seniorName}</p>
-
-      <div style={{ background: T.bg, borderRadius: 10, padding: 12, marginBottom: 14 }}>
-        <p style={{ fontFamily: F.body, fontSize: 12, color: T.inkSoft, margin: 0, lineHeight: 1.6 }}>{item.desc}</p>
-        <p style={{ fontFamily: F.body, fontSize: 11, color: T.inkFaint, margin: "8px 0 0" }}>Giá trị Senior khai báo: {money(item.estimatedValue)} · Gửi ngày {item.dateSubmitted}</p>
-      </div>
-
-      <label style={labelStyle}>Phân hạng</label>
-      <div style={{ display: "flex", gap: 8, marginTop: 5 }}>
-        {["A", "B"].map((g) => (
-          <button key={g} onClick={() => setGrade(g)} style={{
-            flex: 1, padding: "9px 0", borderRadius: 10, border: `1.5px solid ${grade === g ? T.ink : T.line}`,
-            background: grade === g ? T.ink : T.surface, color: grade === g ? "#fff" : T.inkSoft,
-            fontFamily: F.display, fontWeight: 600, fontSize: 13, cursor: "pointer",
-          }}>Hạng {g}</button>
-        ))}
-      </div>
-
-      <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
-        <div style={{ flex: 1 }}>
-          <label style={labelStyle}>Giá trị thị trường xác nhận (đ)</label>
-          <input type="number" style={fieldStyle} value={marketValue} onChange={(e) => setMarketValue(Number(e.target.value))} />
-        </div>
-        <div style={{ flex: 1 }}>
-          <label style={labelStyle}>Giá thuê / ngày (đ)</label>
-          <input type="number" style={fieldStyle} value={price} onChange={(e) => setPrice(Number(e.target.value))} />
-        </div>
-      </div>
-
-      <label style={{ ...labelStyle, display: "block", marginTop: 14 }}>Tỉ lệ chia sẻ doanh thu — Senior nhận {splitSenior}% / LabShare {100 - splitSenior}%</label>
-      <input type="range" min={40} max={70} step={10} value={splitSenior} onChange={(e) => setSplitSenior(Number(e.target.value))} style={{ width: "100%", marginTop: 6 }} />
-
-      <div style={{ marginTop: 14, padding: "10px 12px", background: T.purpleBg, borderRadius: 10, display: "flex", justifyContent: "space-between" }}>
-        <span style={{ fontFamily: F.body, fontSize: 12, color: T.purple }}>Mã niêm phong sẽ cấp</span>
-        <span style={{ fontFamily: F.mono, fontSize: 12.5, fontWeight: 600, color: T.purple }}>{sealCode}</span>
-      </div>
-
-      <div style={{ display: "flex", gap: 8, marginTop: 18 }}>
-        <SecondaryButton onClick={() => onReject(item.id)} icon={X} style={{ flex: 1 }}>Từ chối</SecondaryButton>
-        <PrimaryButton onClick={() => onApprove(item.id, { grade, price, marketValue, splitSenior, splitPlatform: 100 - splitSenior, sealCode })} icon={Check} style={{ flex: 1.4 }}>
-          Duyệt & niêm phong
-        </PrimaryButton>
-      </div>
-    </Modal>
-  );
-}
-
-function AppraisalQueueScreen({ items, onSelect }) {
-  return (
-    <div>
-      <PageHeader title="Chờ thẩm định" subtitle="Thiết bị Senior vừa ký gửi, chờ LabShare kiểm tra, phân hạng và niêm phong." />
-      {items.length === 0 ? (
-        <div style={{ textAlign: "center", marginTop: 60 }}>
-          <p style={{ fontSize: 36, marginBottom: 10 }}>\u2705</p>
-          <p style={{ fontFamily: F.display, fontSize: 15.5, fontWeight: 600, color: T.ink, margin: 0 }}>Không có ký gửi nào đang chờ</p>
-        </div>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {items.map((it) => (
-            <Card key={it.id} onClick={() => onSelect(it)} style={{ padding: 16, display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-              <div style={{ fontSize: 28 }}>{catInfo(it.category).emoji}</div>
-              <div style={{ flex: 1, minWidth: 180 }}>
-                <p style={{ fontFamily: F.display, fontWeight: 600, fontSize: 14, color: T.ink, margin: 0 }}>{it.name}</p>
-                <p style={{ fontFamily: F.body, fontSize: 12, color: T.inkFaint, margin: "3px 0 0" }}>Ký gửi bởi {it.seniorName} · {it.dateSubmitted}</p>
-                <p style={{ fontFamily: F.mono, fontSize: 11.5, color: T.inkFaint, margin: "2px 0 0" }}>Khai báo: {money(it.estimatedValue)}</p>
-              </div>
-              <StatusBadge status="appraisal_pending" />
-              <ArrowRight size={15} color={T.inkFaint} />
-            </Card>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Admin — rental requests
-// ---------------------------------------------------------------------------
-
-function RentalRequestsScreen({ bookings, catalog, onRespond }) {
-  const pending = bookings.filter((b) => b.status === "pending");
-  return (
-    <div>
-      <PageHeader title="Đơn thuê chờ duyệt" subtitle="Xác nhận khả năng đáp ứng và chuẩn bị thiết bị tại điểm hẹn." />
-      {pending.length === 0 ? (
-        <div style={{ textAlign: "center", marginTop: 60 }}>
-          <p style={{ fontSize: 36, marginBottom: 10 }}>\uD83D\uDCED</p>
-          <p style={{ fontFamily: F.display, fontSize: 15.5, fontWeight: 600, color: T.ink, margin: 0 }}>Không có đơn nào chờ duyệt</p>
-        </div>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {pending.map((b) => {
-            const product = catalog.find((p) => p.id === b.productId);
-            if (!product) return null;
-            const pt = PICKUP_POINTS.find((p) => p.id === b.pickupId);
-            return (
-              <Card key={b.id} style={{ padding: 16, display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-                <div style={{ fontSize: 28 }}>{product.emoji}</div>
-                <div style={{ flex: 1, minWidth: 180 }}>
-                  <p style={{ fontFamily: F.display, fontWeight: 600, fontSize: 14, color: T.ink, margin: 0 }}>{product.name}</p>
-                  <p style={{ fontFamily: F.body, fontSize: 12, color: T.inkFaint, margin: "3px 0 0" }}>Từ {b.renterName}</p>
-                  <p style={{ fontFamily: F.mono, fontSize: 11, color: T.inkFaint, margin: "2px 0 0" }}>{b.start} → {b.end}{pt ? ` · ${pt.name}` : ""}</p>
-                </div>
-                <StatusBadge status={b.status} />
-                <div style={{ display: "flex", gap: 8 }}>
-                  <SecondaryButton onClick={() => onRespond(b.id, "rejected")} icon={X}>Từ chối</SecondaryButton>
-                  <PrimaryButton onClick={() => onRespond(b.id, "confirmed")} icon={Check} style={{ width: "auto", padding: "10px 16px" }}>Xác nhận</PrimaryButton>
-                </div>
-              </Card>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Admin — overview
-// ---------------------------------------------------------------------------
-
-function OverviewScreen({ catalog, bookings, consignments }) {
-  const activeItems = catalog.length;
-  const activeBookings = bookings.filter((b) => ["confirmed", "pending", "picked_up"].includes(b.status)).length;
-  const insuranceFund = 1240000 + bookings.filter((b) => b.status !== "rejected").length * INSURANCE_FEE;
-  const monthlyRevenue = catalog.reduce((sum, p) => sum + p.earnedSoFar / (p.splitSenior / 100) * (p.splitPlatform / 100), 0) + 850000;
-  const pendingAppraisals = consignments.filter((c) => c.status === "pending").length;
-
-  // Phase 5: overlay real backend stats + ledger when the API is reachable.
-  const [stats, setStats] = useState(null);
-  const [ledger, setLedger] = useState(null);
-  useEffect(() => {
-    let active = true;
-    apiAdmin("/admin/stats").then(({ stats }) => active && setStats(stats)).catch(() => {});
-    apiAdmin("/admin/ledger").then(({ ledger }) => active && setLedger(ledger)).catch(() => {});
-    return () => { active = false; };
-  }, []);
-
-  const useStats = stats != null;
-  const activeItemsV = useStats ? stats.activeItems : activeItems;
-  const activeBookingsV = useStats ? stats.activeBookings : activeBookings;
-  const insuranceFundV = useStats ? stats.insuranceFund : insuranceFund;
-  const revenueV = useStats ? stats.realizedRevenue : monthlyRevenue;
-  const pendingV = useStats ? stats.pendingAppraisals : pendingAppraisals;
-
-  const cards = [
-    { label: "Thiết bị đang cho thuê", value: activeItemsV, icon: Tag, color: T.teal },
-    { label: "Đơn đang hoạt động", value: activeBookingsV, icon: Package, color: T.accentDeep },
-    { label: "Quỹ bảo hiểm hiện có", value: money(Math.round(insuranceFundV)), icon: ShieldCheck, color: T.purple },
-    { label: "Doanh thu LabShare", value: money(Math.round(revenueV)), icon: BarChart3, color: T.green },
-  ];
-
-  const LEDGER_LABELS = {
-    rental_revenue: { t: "Phí thuê", c: T.green },
-    insurance_fee: { t: "Phí bảo hiểm", c: T.teal },
-    deposit_hold: { t: "Giữ cọc", c: T.accentDeep },
-    deposit_release: { t: "Hoàn cọc", c: T.purple },
-    senior_payout: { t: "Chia sẻ senior", c: T.accentDeep },
-    repair_fee: { t: "Phí sửa chữa", c: T.danger },
-    liquidation: { t: "Thanh lý", c: T.danger },
-  };
-
-  return (
-    <div>
-      <PageHeader title="Tổng quan vận hành" subtitle="Số liệu tổng hợp cho đội ngũ LabShare." />
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 14, marginBottom: 20 }}>
-        {cards.map((c, i) => {
-          const Icon = c.icon;
-          return (
-            <Card key={i} style={{ padding: 18 }}>
-              <Icon size={18} color={c.color} />
-              <p style={{ fontFamily: F.display, fontSize: 20, fontWeight: 700, color: T.ink, margin: "10px 0 0" }}>{c.value}</p>
-              <p style={{ fontFamily: F.body, fontSize: 12, color: T.inkFaint, margin: "2px 0 0" }}>{c.label}</p>
-            </Card>
-          );
-        })}
-      </div>
-
-      {useStats && stats.seniorPaidOut > 0 && (
-        <Card style={{ padding: 14, marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            <p style={{ fontFamily: F.body, fontSize: 12, color: T.inkFaint, margin: 0 }}>Đã chi trả cho Senior</p>
-            <p style={{ fontFamily: F.display, fontSize: 18, fontWeight: 700, color: T.green, margin: "2px 0 0" }}>{money(stats.seniorPaidOut)}</p>
-          </div>
-          <Wallet size={22} color={T.green} />
-        </Card>
-      )}
-
-      {pendingV > 0 && (
-        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", background: T.purpleBg, borderRadius: 12, marginBottom: 16 }}>
-          <ClipboardCheck size={16} color={T.purple} />
-          <span style={{ fontFamily: F.body, fontSize: 12.5, color: T.purple }}>{pendingV} thiết bị ký gửi đang chờ thẩm định.</span>
-        </div>
-      )}
-
-      {ledger && ledger.length > 0 && (
-        <Card style={{ padding: 16 }}>
-          <p style={{ fontFamily: F.display, fontSize: 14, fontWeight: 700, color: T.ink, margin: "0 0 12px" }}>Sổ cái gần đây</p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {ledger.slice(0, 8).map((r) => {
-              const meta = LEDGER_LABELS[r.type] || { t: r.type, c: T.inkSoft };
-              return (
-                <div key={r.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 8, borderBottom: `1px dashed ${T.line}` }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ width: 8, height: 8, borderRadius: "50%", background: meta.c }} />
-                    <span style={{ fontFamily: F.body, fontSize: 12.5, color: T.inkSoft }}>{meta.t}</span>
-                  </div>
-                  <span style={{ fontFamily: F.mono, fontSize: 13, fontWeight: 600, color: T.ink }}>{money(r.amount)}</span>
-                </div>
-              );
-            })}
-          </div>
-        </Card>
-      )}
-    </div>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // Senior — my consignments
@@ -1313,7 +1094,7 @@ function AddConsignmentModal({ onClose, onSubmit }) {
 // ---------------------------------------------------------------------------
 
 function ProfileScreen({ role, setRole, onLogout }) {
-  const roleLabels = { renter: "Người thuê", senior: "Senior ký gửi", admin: "Admin vận hành" };
+  const roleLabels = { renter: "Người thuê", senior: "Senior ký gửi" };
   const initial = (CURRENT_USER || "?").charAt(0).toUpperCase();
   return (
     <div>
@@ -1328,7 +1109,7 @@ function ProfileScreen({ role, setRole, onLogout }) {
         </div>
         <p style={{ fontFamily: F.display, fontSize: 13.5, fontWeight: 600, color: T.ink, margin: "18px 0 8px" }}>Đang xem với vai trò: {roleLabels[role]}</p>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          {["renter", "senior", "admin"].map((r) => (
+          {["renter", "senior"].map((r) => (
             <button key={r} onClick={() => setRole(r)} style={{
               padding: "8px 14px", borderRadius: 10, border: `1.5px solid ${role === r ? T.ink : T.line}`,
               background: role === r ? T.ink : T.bg, color: role === r ? "#fff" : T.inkSoft,
@@ -1360,7 +1141,6 @@ function ProfileScreen({ role, setRole, onLogout }) {
 const DEMO_ACCOUNTS = [
   { label: "Người thuê", name: "Thu Trang", email: "thutrang@bk.edu.vn", emoji: "🧑‍🎓" },
   { label: "Senior", name: "Đức Anh", email: "ducanh@bk.edu.vn", emoji: "🎓" },
-  { label: "Admin", name: "LabShare Admin", email: "admin@labshare.vn", emoji: "🛠️" },
 ];
 const DEMO_PASSWORD = "password123";
 
@@ -1457,16 +1237,22 @@ function AuthScreen({ onLogin, onBack }) {
           </div>
         )}
 
-        <button onClick={onBack} style={{ marginTop: 18, background: "none", border: "none", cursor: "pointer", fontFamily: F.body, fontSize: 12, color: T.inkFaint, padding: 0 }}>← Về trang chủ</button>
+        <div style={{ marginTop: 18, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", fontFamily: F.body, fontSize: 12, color: T.inkFaint, padding: 0 }}>← Về trang chủ</button>
+          <a href="/admin.html" style={{ fontFamily: F.body, fontSize: 12, color: T.inkSoft, textDecoration: "none", borderBottom: `1px dotted ${T.line}`, paddingBottom: 1 }}>Đăng nhập quản trị →</a>
+        </div>
       </Card>
     </div>
   );
 }
 
-const ROLE_DEFAULT_SCREEN = { renter: "home", senior: "myConsignments", admin: "appraisalQueue" };
+const ROLE_DEFAULT_SCREEN = { renter: "home", senior: "myConsignments" };
 
 export default function App({ onExit }) {
   const [screen, setScreen] = useState("home");
+  // A personal account is both renter + senior (switching is just a view
+  // toggle). Admins use their own separate frontend at /admin.html and are
+  // redirected away below.
   const [role, setRole] = useState("renter");
   const [query, setQuery] = useState("");
   const [catFilter, setCatFilter] = useState(null);
@@ -1475,7 +1261,6 @@ export default function App({ onExit }) {
   const [selectedProduct, setSelectedProduct] = useState(null);
 
   const [addConsignModalOpen, setAddConsignModalOpen] = useState(false);
-  const [appraisalItem, setAppraisalItem] = useState(null);
   const [confirmedBooking, setConfirmedBooking] = useState(null);
   const [qrBooking, setQrBooking] = useState(null);
   const [returnBooking, setReturnBooking] = useState(null);
@@ -1487,44 +1272,74 @@ export default function App({ onExit }) {
   const [consignments, setConsignments] = useState(seedConsignments);
   const [bookings, setBookings] = useState(seedBookings);
 
-  // Login gate: an existing token in localStorage keeps you signed in.
-  const [authed, setAuthed] = useState(() => !!SESSION_TOKEN);
+  // Login gate: a valid, backend-verified session keeps you signed in. An
+  // orphaned/expired localStorage token is NOT trusted — we confirm it with
+  // GET /auth/me before unlocking the app, else we land on the auth screen.
+  const [authStatus, setAuthStatus] = useState(() =>
+    SESSION_TOKEN ? "loading" : "out"
+  );
 
-  // Phase 2: hydrate the catalog from the backend on mount. We keep the local
-  // SEED data as the instant fallback, then merge in DB/API values where the
-  // product matches by sealCode. Local fields SEED marks rich (id p1..p8,
-  // unavailableDays day-numbers) are preserved; DB wins for price/marketValue/
-  // rating/rentedCount/earnedSoFar/desc/specs/included/notIncluded.
-  useEffect(() => {
-    let active = true;
-    fetch("/api/products")
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("catalog fetch failed"))))
-      .then(({ products }) => {
-        if (!active || !Array.isArray(products)) return;
-        const bySeal = (apiProd) => {
-          const seed = SEED_PRODUCTS.find((s) => s.sealCode === apiProd.sealCode);
-          return {
-            ...apiProd,
-            id: seed ? seed.id : apiProd.sealCode,
-            unavailableDays: seed ? seed.unavailableDays : (apiProd.unavailableDays || []),
-            splitSenior: apiProd.splitSenior, splitPlatform: apiProd.splitPlatform,
-          };
+  // catalog load — refetches /api/products (running off the SEED fallback so a
+  // refreshed app shows fresh data). The cart merge keeps local fields SEED
+  // marks rich (id p1..p8, unavailableDays day-numbers); DB wins for
+  // price/marketValue/rating/rentedCount/earnedSoFar/desc/specs/included/
+  // notIncluded. Extracted so we can re-run it (polling) instead of fetching
+  // once at mount — that's how a consignment approved in the admin FE shows up
+  // here without a manual refresh.
+  const loadCatalog = useCallback(async () => {
+    try {
+      const r = await fetch("/api/products");
+      if (!r.ok) throw new Error("catalog fetch failed");
+      const { products } = await r.json();
+      if (!Array.isArray(products)) return;
+      const bySeal = (apiProd) => {
+        const seed = SEED_PRODUCTS.find((s) => s.sealCode === apiProd.sealCode);
+        return {
+          ...apiProd,
+          id: seed ? seed.id : apiProd.sealCode,
+          unavailableDays: seed ? seed.unavailableDays : (apiProd.unavailableDays || []),
+          splitSenior: apiProd.splitSenior, splitPlatform: apiProd.splitPlatform,
         };
-        setCatalog(products.map(bySeal));
-      })
-      .catch(() => { /* keep SEED fallback if API is down */ });
-    return () => { active = false; };
+      };
+      setCatalog(products.map(bySeal));
+    } catch { /* keep SEED fallback if API is down */ }
   }, []);
 
-  // Not signed in → show the auth screen instead of the app.
-  if (!authed) {
-    return (
-      <AuthScreen
-        onLogin={(token, user) => { setSession(token, user); setAuthed(true); }}
-        onBack={onExit}
-      />
-    );
-  }
+  // Initial hydrate on mount.
+  useEffect(() => { loadCatalog(); }, [loadCatalog]);
+
+  // Light polling while browsing the catalog/home so newly-appraised products
+  // appear without a manual refresh. Stops as soon as you leave home.
+  useEffect(() => {
+    if (screen !== "home") return;
+    const id = setInterval(loadCatalog, 20000);
+    return () => clearInterval(id);
+  }, [screen, loadCatalog]);
+
+  // Bootstrap the session: if a token exists, verify it against the backend
+  // before letting the user in. Invalid/expired tokens are cleared so the
+  // auth screen always appears instead of silently using the default persona.
+  useEffect(() => {
+    if (!SESSION_TOKEN) return;
+    let active = true;
+    fetch("/auth/me", { headers: { Authorization: "Bearer " + SESSION_TOKEN } })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("bad token"))))
+      .then(({ user }) => {
+        if (!active) return;
+        // Admin accounts don't belong in the user app — send them to the
+        // separate admin frontend.
+        if (user.isAdmin) { setSession(null, null); window.location.href = "/admin.html"; return; }
+        setSession(SESSION_TOKEN, user);
+        setRole("renter");
+        setAuthStatus("in");
+      })
+      .catch(() => {
+        if (!active) return;
+        setSession(null, null); // drop the stale token
+        setAuthStatus("out");
+      });
+    return () => { active = false; };
+  }, []);
 
   const changeRole = (r) => { setRole(r); setScreen(ROLE_DEFAULT_SCREEN[r]); };
 
@@ -1556,12 +1371,6 @@ export default function App({ onExit }) {
     }).then(({ booking }) => {
       setBookings((list) => list.map((x) => (x.id === id ? { ...x, id: booking.id, start: booking.start, end: booking.end, nights: booking.nights, total: booking.total, pickupId: booking.pickupId } : x)));
     }).catch(() => { /* keep local */ });
-  };
-
-  const respondRentalRequest = (id, status) => {
-    setBookings((list) => list.map((b) => (b.id === id ? { ...b, status } : b)));
-    // Admin confirm/reject on the backend.
-    apiAdmin(`/admin/bookings/${id}/${status}`).catch(() => { /* keep local */ });
   };
 
   const updateBooking = (id, patch) => {
@@ -1599,40 +1408,7 @@ export default function App({ onExit }) {
     }).catch(() => { /* keep local */ });
   };
 
-  const approveAppraisal = (id, appraisal) => {
-    const item = consignments.find((c) => c.id === id);
-    if (!item) return;
-    const newProduct = {
-      id: "p" + Date.now(), name: item.name, category: item.category, price: appraisal.price,
-      marketValue: appraisal.marketValue, grade: appraisal.grade, seniorName: item.seniorName,
-      rating: 5.0, rentedCount: 0, emoji: catInfo(item.category).emoji, sealCode: appraisal.sealCode,
-      appraisedDate: "Hôm nay", lastTestedDate: "Hôm nay", desc: item.desc,
-      specs: [{ label: "Tình trạng", value: "Đã kiểm tra khi ký gửi" }],
-      included: [], notIncluded: [], unavailableDays: [],
-      splitSenior: appraisal.splitSenior, splitPlatform: appraisal.splitPlatform, earnedSoFar: 0,
-    };
-    setCatalog((list) => [newProduct, ...list]);
-    setConsignments((list) => list.map((c) => (c.id === id ? { ...c, status: "approved", productId: newProduct.id } : c)));
-    setAppraisalItem(null);
-    // Sync to backend (admin action). On success, adopt the server-created
-    // product id; on failure keep the optimistic local product (fallback).
-    apiAdmin(`/admin/consignments/${id}/approve`, {}, {
-      grade: appraisal.grade, price: appraisal.price, marketValue: appraisal.marketValue,
-      splitSenior: appraisal.splitSenior, splitPlatform: appraisal.splitPlatform, sealCode: appraisal.sealCode,
-    }).then(({ product }) => {
-      setCatalog((list) => list.map((p) => (p.sealCode === product.sealCode ? { ...p, id: product.id } : p)));
-      setConsignments((list) => list.map((c) => (c.id === id ? { ...c, productId: product.id } : c)));
-    }).catch(() => { /* keep local */ });
-  };
-
-  const rejectAppraisal = (id) => {
-    setConsignments((list) => list.map((c) => (c.id === id ? { ...c, status: "rejected" } : c)));
-    setAppraisalItem(null);
-    apiAdmin(`/admin/consignments/${id}/reject`).catch(() => { /* keep local */ });
-  };
-
   const compareProducts = catalog.filter((p) => compareIds.includes(p.id));
-  const pendingAppraisals = consignments.filter((c) => c.status === "pending");
 
   let body;
   if (screen === "home") {
@@ -1643,21 +1419,36 @@ export default function App({ onExit }) {
     body = <MyRentalsScreen bookings={bookings} catalog={catalog} onOpenQR={setQrBooking} onOpenReturn={setReturnBooking} />;
   } else if (screen === "myConsignments") {
     body = <MyConsignmentsScreen consignments={consignments} catalog={catalog} onAdd={() => setAddConsignModalOpen(true)} />;
-  } else if (screen === "appraisalQueue") {
-    body = <AppraisalQueueScreen items={pendingAppraisals} onSelect={setAppraisalItem} />;
-  } else if (screen === "rentalRequests") {
-    body = <RentalRequestsScreen bookings={bookings} catalog={catalog} onRespond={respondRentalRequest} />;
-  } else if (screen === "overview") {
-    body = <OverviewScreen catalog={catalog} bookings={bookings} consignments={consignments} />;
   } else if (screen === "profile") {
-    body = <ProfileScreen role={role} setRole={changeRole} onLogout={() => { setSession(null); setAuthed(false); }} />;
+    body = <ProfileScreen role={role} setRole={changeRole} onLogout={() => { setSession(null, null); setAuthStatus("out"); }} />;
+  }
+
+  // Session gate — placed AFTER every hook so the hook order/count stays
+  // stable across renders (early-returning before them crashes React with
+  // "Rendered more hooks than during the previous render").
+  if (authStatus === "loading") {
+    return <div style={{ minHeight: "100vh", background: "var(--bg,#eef1f6)" }} />;
+  }
+  if (authStatus === "out") {
+    return (
+      <AuthScreen
+        onLogin={(token, user) => {
+          setSession(token, user);
+          // Admin accounts don't belong in the user app — hand them to the
+          // admin FE right after login (same shared login UI, role-based render).
+          if (user && user.isAdmin) { window.location.href = "/admin.html"; return; }
+          setAuthStatus("in");
+        }}
+        onBack={onExit}
+      />
+    );
   }
 
   return (
     <div style={{ background: T.bg, minHeight: "100vh", fontFamily: F.body }}>
       <style>{GLOBAL_CSS}</style>
       <div className="rm-shell">
-        <Sidebar screen={screen} setScreen={setScreen} role={role} setRole={changeRole} pendingRentalCount={pendingRentalCount} pendingAppraisalCount={pendingAppraisalCount} compareCount={compareIds.length} onAdd={() => setAddConsignModalOpen(true)} onExit={onExit} />
+        <Sidebar screen={screen} setScreen={setScreen} role={role} setRole={changeRole} pendingRentalCount={pendingRentalCount} compareCount={compareIds.length} onAdd={() => setAddConsignModalOpen(true)} onExit={onExit} />
         <main className="rm-main" style={{ padding: "28px 32px 90px", maxWidth: 1080, margin: "0 auto", width: "100%" }}>
           {screen === "detail" && (
             <button onClick={() => setScreen("home")} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", cursor: "pointer", padding: 0, marginBottom: 16, fontFamily: F.body, fontSize: 12.5, color: T.inkSoft }}>← Quay lại danh sách</button>
@@ -1670,7 +1461,6 @@ export default function App({ onExit }) {
       {compareOpen && <CompareModal products={compareProducts} onClose={() => setCompareOpen(false)} onOpenDetail={(p) => { setCompareOpen(false); openProduct(p); }} />}
 
       {addConsignModalOpen && <AddConsignmentModal onClose={() => setAddConsignModalOpen(false)} onSubmit={addConsignment} />}
-      {appraisalItem && <AppraisalModal item={appraisalItem} onClose={() => setAppraisalItem(null)} onApprove={approveAppraisal} onReject={rejectAppraisal} />}
       {confirmedBooking && <ConfirmedModal booking={confirmedBooking} onClose={() => { setConfirmedBooking(null); setScreen("myRentals"); }} />}
       {qrBooking && <QRModal booking={qrBooking} onClose={() => setQrBooking(null)} onConfirm={() => { updateBooking(qrBooking.id, { handoverStage: "picked_up" }); setQrBooking(null); }} />}
       {returnBooking && (() => {

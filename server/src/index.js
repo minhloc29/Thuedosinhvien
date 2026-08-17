@@ -1,6 +1,11 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 import prisma from "./prisma.js";
 import authRouter from "./routes/auth.js";
@@ -34,10 +39,19 @@ app.use("/api/admin", adminRouter);
 // Phase 4: Booking (renter) + admin confirm/handover/return.
 app.use("/api/bookings", bookingsRouter);
 
-// Mount point for later phases (kept explicit so route files register here):
-// app.use("/products", productRouter);
-// app.use("/consignments", consignmentRouter);
-// ...
+// Production: serve the built frontend (dist/) alongside the API so a single
+// Render Web Service hosts both the UI and the API on one origin. The Vite
+// build emits both index.html (user app) and admin.html into dist/. Skipped
+// when no build exists yet (pure-API/dev runs keep working untouched).
+const dist = path.resolve(__dirname, "../../dist");
+if (fs.existsSync(path.join(dist, "index.html"))) {
+  app.use(express.static(dist));
+  // SPA fallback: any non-API, non-asset path (e.g. deep links, /admin.html
+  // handled by express.static; unknown routes) resolves to the user app HTML.
+  app.get(/^\/(?!api\/|auth\/|assets\/).*/, (req, res) => {
+    res.sendFile(path.join(dist, "index.html"));
+  });
+}
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {

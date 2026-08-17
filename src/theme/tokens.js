@@ -2,7 +2,7 @@
 // Centralizing them here means a rebrand or theme is a single-file change.
 //
 // "Cool tech" direction: cool grey-blue ground, navy ink, amber accent,
-// teal secondary. Display set in a geometric sans (Space Grotesk).
+// teal secondary. Display in a serif (Fraunces) for a less generic feel.
 
 export const T = {
   bg: "#EEF1F6",        // cool grey-blue paper
@@ -26,7 +26,7 @@ export const T = {
 };
 
 export const F = {
-  display: "'Space Grotesk',sans-serif",
-  body: "'Inter',sans-serif",
-  mono: "'JetBrains Mono',monospace",
+  display: `'Fraunces', ui-serif, 'New York', Georgia, 'Times New Roman', serif`,
+  body: `'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif`,
+  mono: `ui-monospace, 'SF Mono', Menlo, Consolas, monospace`,
 };
