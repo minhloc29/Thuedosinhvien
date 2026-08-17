@@ -1,12 +1,13 @@
 // LabShare backend schema — matches the spec (mục 2).
-// Dev uses SQLite (file); switch to Postgres by changing the provider + DATABASE_URL.
+// Production uses Postgres (Neon); set DATABASE_URL to the Neon connection
+// string. For a quick local run you can point it at a local Postgres instead.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 

@@ -18,5 +18,3 @@ npm-debug.log*
 # Backend (server/)
 server/node_modules/
 server/.env
-server/prisma/dev.db
-server/prisma/dev.db-journal
