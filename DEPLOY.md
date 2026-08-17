@@ -5,9 +5,10 @@ Express + Prisma + PostgreSQL (Neon) backend. This repo is wired so a **single
 Render Web Service** serves both the API (`/api/*`, `/auth/*`) and the built
 frontend (`/` and `/admin.html`) from one URL.
 
-`start.js` (run by Render) does, in order: install `server/` deps → apply
-migrations (`prisma migrate deploy`) → build the frontend (`vite build`) →
-start Express.
+Render's `render.yaml` runs everything heavy in the **build phase** (root deps,
+frontend build, server deps, Prisma client generation) and keeps the **start
+command** thin — apply migrations (`prisma migrate deploy`) then launch Express
+(which serves `dist/`).
 
 ## Prerequisites (one-time)
 

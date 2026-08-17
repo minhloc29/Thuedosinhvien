@@ -3,13 +3,15 @@
 #
 # To deploy:
 #   1. Create a Neon Postgres database and copy its connection string.
-#   2. Use this file (Render dashboard -> New -> Blueprint -> connect this repo),
-#      or set DATABASE_URL + JWT_SECRET as env vars on a manually-created service.
-#   3. Paste DATABASE_URL (Neon) and a long random JWT_SECRET in the service's
-#      Environment settings (they are sync:false so Render prompts for them).
+#   2. Add the repo as a Render Blueprint: Dashboard -> New -> Blueprint ->
+#      connect this repo. Render reads this file and creates the service.
+#   3. On the service, set the env vars listed below (DATABASE_URL, JWT_SECRET;
+#      they are sync:false so Render prompts for the values).
 #
-# start.js handles: server deps install -> prisma migrate deploy -> vite build
-# -> express start. Render runs it for both build and start; it is idempotent.
+# Design: everything heavy (root deps, frontend build, server deps, Prisma
+# client generation) runs in the BUILD phase; the START command is thin —
+# it applies migrations then launches Express, which also serves dist/.
+# This avoids re-installing/re-building at runtime (fragile on Render).
 
 services:
   - type: web
@@ -17,8 +19,13 @@ services:
     runtime: node
     plan: free
     region: singapore
-    buildCommand: npm install
-    startCommand: node start.js
+    buildCommand: |
+      export NODE_OPTIONS="--max-old-space-size=1024"
+      npm install
+      npm run build
+      cd server && npm install && npx prisma generate
+    startCommand: |
+      cd server && npx prisma migrate deploy && node src/index.js
     healthCheckPath: /
     envVars:
       - key: NODE_VERSION

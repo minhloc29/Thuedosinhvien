@@ -1,6 +1,9 @@
-// LabShare — production entrypoint.
+// LabShare — production entrypoint (local / non-Render platforms).
 //
-// Render runs `node start.js` and gets a fully ready app in one command:
+// NOTE: Render does NOT use this file. render.yaml runs everything in its
+// BUILD phase and its startCommand is `cd server && npx prisma migrate deploy
+// && node src/index.js`. This file is a convenient local equivalent of that
+// full flow when you run `npm start` on your own machine:
 //   1. install backend deps (server/)
 //   2. apply Prisma migrations in production (non-interactive)
 //   3. build the Vite frontend (user app + admin) into dist/
@@ -13,7 +16,7 @@ import { execSync } from "node:child_process";
 const step = (msg) => console.log(`\n==> ${msg}`);
 
 step("Install backend dependencies (server/)");
-execSync("cd server && npm install --omit=dev", { stdio: "inherit" });
+execSync("cd server && npm install", { stdio: "inherit" });
 
 step("Apply database migrations (prisma migrate deploy)");
 execSync("cd server && npx prisma migrate deploy", { stdio: "inherit" });
