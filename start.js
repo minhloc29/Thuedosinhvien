@@ -12,6 +12,7 @@
 // Local dev still uses the separate `npm run dev` (Vite) + `cd server && npm run dev`.
 
 import { execSync } from "node:child_process";
+import fs from "node:fs";
 
 // Local machines often run behind a corporate proxy (HTTPS_PROXY / http_proxy).
 // Those vars make Prisma unable to reach the Neon Postgres host (P1001). Strip
@@ -28,8 +29,15 @@ execSync("cd server && npm install", { stdio: "inherit" });
 step("Apply database migrations (prisma migrate deploy)");
 execSync("cd server && npx prisma migrate deploy", { stdio: "inherit" });
 
-step("Build frontend (user app + admin)");
-execSync("npm run build", { stdio: "inherit" });
+// Rebuild the frontend only if there's no build yet. Render's build phase
+// already produces dist/, so rebuilding again here (in the lower-memory start
+// phase) is redundant and can OOM on the free tier.
+if (!fs.existsSync("dist/index.html")) {
+  step("Build frontend (user app + admin)");
+  execSync("npm run build", { stdio: "inherit" });
+} else {
+  step("Frontend already built (dist/ present) — skipping rebuild");
+}
 
 step("Start LabShare server");
 execSync("cd server && npm start", { stdio: "inherit" });
