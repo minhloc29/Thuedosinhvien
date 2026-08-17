@@ -1152,17 +1152,44 @@ function RentalRequestsScreen({ bookings, catalog, onRespond }) {
 
 function OverviewScreen({ catalog, bookings, consignments }) {
   const activeItems = catalog.length;
-  const activeBookings = bookings.filter((b) => ["confirmed", "pending"].includes(b.status)).length;
+  const activeBookings = bookings.filter((b) => ["confirmed", "pending", "picked_up"].includes(b.status)).length;
   const insuranceFund = 1240000 + bookings.filter((b) => b.status !== "rejected").length * INSURANCE_FEE;
   const monthlyRevenue = catalog.reduce((sum, p) => sum + p.earnedSoFar / (p.splitSenior / 100) * (p.splitPlatform / 100), 0) + 850000;
   const pendingAppraisals = consignments.filter((c) => c.status === "pending").length;
 
+  // Phase 5: overlay real backend stats + ledger when the API is reachable.
+  const [stats, setStats] = useState(null);
+  const [ledger, setLedger] = useState(null);
+  useEffect(() => {
+    let active = true;
+    apiAdmin("/admin/stats").then(({ stats }) => active && setStats(stats)).catch(() => {});
+    apiAdmin("/admin/ledger").then(({ ledger }) => active && setLedger(ledger)).catch(() => {});
+    return () => { active = false; };
+  }, []);
+
+  const useStats = stats != null;
+  const activeItemsV = useStats ? stats.activeItems : activeItems;
+  const activeBookingsV = useStats ? stats.activeBookings : activeBookings;
+  const insuranceFundV = useStats ? stats.insuranceFund : insuranceFund;
+  const revenueV = useStats ? stats.realizedRevenue : monthlyRevenue;
+  const pendingV = useStats ? stats.pendingAppraisals : pendingAppraisals;
+
   const cards = [
-    { label: "Thiết bị đang cho thuê", value: activeItems, icon: Tag, color: T.teal },
-    { label: "Đơn đang hoạt động", value: activeBookings, icon: Package, color: T.accentDeep },
-    { label: "Quỹ bảo hiểm hiện có", value: money(Math.round(insuranceFund)), icon: ShieldCheck, color: T.purple },
-    { label: "Doanh thu LabShare (ước tính)", value: money(Math.round(monthlyRevenue)), icon: BarChart3, color: T.green },
+    { label: "Thiết bị đang cho thuê", value: activeItemsV, icon: Tag, color: T.teal },
+    { label: "Đơn đang hoạt động", value: activeBookingsV, icon: Package, color: T.accentDeep },
+    { label: "Quỹ bảo hiểm hiện có", value: money(Math.round(insuranceFundV)), icon: ShieldCheck, color: T.purple },
+    { label: "Doanh thu LabShare", value: money(Math.round(revenueV)), icon: BarChart3, color: T.green },
   ];
+
+  const LEDGER_LABELS = {
+    rental_revenue: { t: "Phí thuê", c: T.green },
+    insurance_fee: { t: "Phí bảo hiểm", c: T.teal },
+    deposit_hold: { t: "Giữ cọc", c: T.accentDeep },
+    deposit_release: { t: "Hoàn cọc", c: T.purple },
+    senior_payout: { t: "Chia sẻ senior", c: T.accentDeep },
+    repair_fee: { t: "Phí sửa chữa", c: T.danger },
+    liquidation: { t: "Thanh lý", c: T.danger },
+  };
 
   return (
     <div>
@@ -1179,11 +1206,42 @@ function OverviewScreen({ catalog, bookings, consignments }) {
           );
         })}
       </div>
-      {pendingAppraisals > 0 && (
-        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", background: T.purpleBg, borderRadius: 12 }}>
+
+      {useStats && stats.seniorPaidOut > 0 && (
+        <Card style={{ padding: 14, marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <p style={{ fontFamily: F.body, fontSize: 12, color: T.inkFaint, margin: 0 }}>Đã chi trả cho Senior</p>
+            <p style={{ fontFamily: F.display, fontSize: 18, fontWeight: 700, color: T.green, margin: "2px 0 0" }}>{money(stats.seniorPaidOut)}</p>
+          </div>
+          <Wallet size={22} color={T.green} />
+        </Card>
+      )}
+
+      {pendingV > 0 && (
+        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", background: T.purpleBg, borderRadius: 12, marginBottom: 16 }}>
           <ClipboardCheck size={16} color={T.purple} />
-          <span style={{ fontFamily: F.body, fontSize: 12.5, color: T.purple }}>{pendingAppraisals} thiết bị ký gửi đang chờ thẩm định.</span>
+          <span style={{ fontFamily: F.body, fontSize: 12.5, color: T.purple }}>{pendingV} thiết bị ký gửi đang chờ thẩm định.</span>
         </div>
+      )}
+
+      {ledger && ledger.length > 0 && (
+        <Card style={{ padding: 16 }}>
+          <p style={{ fontFamily: F.display, fontSize: 14, fontWeight: 700, color: T.ink, margin: "0 0 12px" }}>Sổ cái gần đây</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {ledger.slice(0, 8).map((r) => {
+              const meta = LEDGER_LABELS[r.type] || { t: r.type, c: T.inkSoft };
+              return (
+                <div key={r.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 8, borderBottom: `1px dashed ${T.line}` }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ width: 8, height: 8, borderRadius: "50%", background: meta.c }} />
+                    <span style={{ fontFamily: F.body, fontSize: 12.5, color: T.inkSoft }}>{meta.t}</span>
+                  </div>
+                  <span style={{ fontFamily: F.mono, fontSize: 13, fontWeight: 600, color: T.ink }}>{money(r.amount)}</span>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
       )}
     </div>
   );
