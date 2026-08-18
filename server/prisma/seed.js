@@ -170,15 +170,15 @@ async function main() {
   const osc = await prisma.product.findUnique({ where: { sealCode: "LS-0198" } });
   const rpi = await prisma.product.findUnique({ where: { sealCode: "LS-0219" } });
   if (osc) {
-    const nights = 2, deposit = Math.round(osc.marketValue * DEPOSIT_RATE);
+    const weeks = 1, deposit = Math.round(osc.marketValue * DEPOSIT_RATE);
     await prisma.booking.create({
-      data: { productId: osc.id, renterId: users.minhquan.id, pickupPointId: "ktx-b2", startDate: d("2026-08-18"), endDate: d("2026-08-20"), nights, rentalCost: nights * osc.pricePerDay, deposit, insuranceFee: INSURANCE_FEE, total: nights * osc.pricePerDay + deposit + INSURANCE_FEE, status: "pending" },
+      data: { productId: osc.id, renterId: users.minhquan.id, pickupPointId: "ktx-b2", startDate: d("2026-08-18"), endDate: d("2026-08-25"), nights: weeks * 7, weeks, rentalCost: weeks * osc.pricePerDay, deposit, insuranceFee: INSURANCE_FEE, total: weeks * osc.pricePerDay + deposit + INSURANCE_FEE, status: "pending" },
     });
   }
   if (rpi) {
-    const nights = 2, deposit = Math.round(rpi.marketValue * DEPOSIT_RATE);
+    const weeks = 1, deposit = Math.round(rpi.marketValue * DEPOSIT_RATE);
     await prisma.booking.create({
-      data: { productId: rpi.id, renterId: users.thutrang.id, pickupPointId: "c7", startDate: d("2026-08-10"), endDate: d("2026-08-12"), nights, rentalCost: nights * rpi.pricePerDay, deposit, insuranceFee: INSURANCE_FEE, total: nights * rpi.pricePerDay + deposit + INSURANCE_FEE, status: "confirmed", handoverAt: d("2026-08-10") },
+      data: { productId: rpi.id, renterId: users.thutrang.id, pickupPointId: "c7", startDate: d("2026-08-10"), endDate: d("2026-08-17"), nights: weeks * 7, weeks, rentalCost: weeks * rpi.pricePerDay, deposit, insuranceFee: INSURANCE_FEE, total: weeks * rpi.pricePerDay + deposit + INSURANCE_FEE, status: "confirmed", handoverAt: d("2026-08-10") },
     });
   }
 

@@ -16,10 +16,11 @@ function toApi(b) {
     product: b.product ? { id: b.product.id, sealCode: b.product.sealCode, name: b.product.name, emoji: b.product.category?.emoji, image: b.product.image, pricePerDay: b.product.pricePerDay, splitSeniorPct: b.product.splitSeniorPct, splitPlatformPct: b.product.splitPlatformPct } : null,
     renterName: b.renter?.name,
     pickupId: b.pickupPointId,
-    pickupName: b.pickupPoint?.name,
+    pickupName: b.pickupName || b.pickupPoint?.name,
     start: b.startDate.toISOString().slice(0, 10),
     end: b.endDate.toISOString().slice(0, 10),
     nights: b.nights,
+    weeks: b.weeks,
     rentalCost: b.rentalCost,
     deposit: b.deposit,
     insuranceFee: b.insuranceFee,
@@ -35,39 +36,54 @@ function toApi(b) {
   };
 }
 
-// POST /api/bookings  { productId, pickupId, startDate, endDate }
-// Computes nights, rentalCost, deposit, insurance, total server-side
-// (never trust the client for money). Booking starts as "pending".
+// POST /api/bookings  { productId, pickupId, startDate, weeks }  (+ contact)
+// Products rent by the WEEK: min 1, options 1/2/3 weeks. Price is per week, so
+// rentalCost = weeks × pricePerDay (pricePerDay now means the weekly rate).
+// Everything money-related is computed server-side (never trust the client).
+// Booking starts as "pending".
 router.post("/", async (req, res) => {
   try {
-    const { productId, pickupId, startDate, endDate, contactName, contactPhone } = req.body || {};
-    if (!productId || !pickupId || !startDate || !endDate) {
-      return res.status(400).json({ error: "productId, pickupId, startDate, endDate are required" });
+    const { productId, pickupId, pickupName, startDate, weeks, insured, contactName, contactPhone } = req.body || {};
+    const weekCount = Number(weeks) || 1;
+    if (!productId || !startDate || (!pickupId && !pickupName)) {
+      return res.status(400).json({ error: "productId, startDate and a pickup location (pickupName or pickupId) are required" });
+    }
+    if (!Number.isInteger(weekCount) || weekCount < 1 || weekCount > 3) {
+      return res.status(400).json({ error: "weeks must be an integer 1–3" });
     }
 
     const product = await prisma.product.findFirst({ where: { OR: [{ id: String(productId) }, { sealCode: String(productId) }] } });
     if (!product || product.status !== "active") return res.status(404).json({ error: "Product not available" });
 
-    const point = await prisma.pickupPoint.findUnique({ where: { id: String(pickupId) } });
-    if (!point) return res.status(400).json({ error: "Unknown pickup point" });
+    // Accept a free-text pickup location, or look up a known pickup point by id.
+    let pickupPointId = null;
+    if (pickupName) {
+      pickupPointId = null;
+    } else if (pickupId) {
+      const point = await prisma.pickupPoint.findUnique({ where: { id: String(pickupId) } });
+      if (!point) return res.status(400).json({ error: "Unknown pickup point" });
+      pickupPointId = point.id;
+    }
+    const pickupLabel = pickupName ? String(pickupName).trim() : null;
 
     const start = new Date(String(startDate));
-    const end = new Date(String(endDate));
-    if (isNaN(start) || isNaN(end) || end <= start) return res.status(400).json({ error: "Invalid date range" });
-    const nights = Math.round((end - start) / 86400000);
+    if (isNaN(start)) return res.status(400).json({ error: "Invalid start date" });
+    const end = new Date(start.getTime() + weekCount * 7 * 86400000);
+    const nights = weekCount * 7;
 
     if (product.seniorId === req.userId) return res.status(400).json({ error: "Không thể thuê thiết bị của chính mình" });
 
-    const rentalCost = nights * product.pricePerDay;
+    const rentalCost = weekCount * product.pricePerDay;
     const deposit = depositFor(product);
-    const insuranceFee = INSURANCE_FEE;
+    const insuranceFee = insured === false ? 0 : INSURANCE_FEE;
 
     const booking = await prisma.booking.create({
       data: {
         productId: product.id,
         renterId: req.userId,
-        pickupPointId: point.id,
-        startDate: start, endDate: end, nights,
+        pickupPointId,
+        pickupName: pickupLabel,
+        startDate: start, endDate: end, nights, weeks: weekCount,
         rentalCost, deposit, insuranceFee,
         total: rentalCost + deposit + insuranceFee,
         contactName: contactName ? String(contactName).trim() : null,

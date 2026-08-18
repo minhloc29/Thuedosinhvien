@@ -126,7 +126,7 @@ function AppraisalModal({ item, onClose, onApprove, onReject }) {
           <input type="number" style={fieldStyle} value={marketValue} onChange={(e) => setMarketValue(Number(e.target.value))} />
         </div>
         <div style={{ flex: 1 }}>
-          <label style={labelStyle}>Giá thuê / ngày (đ)</label>
+          <label style={labelStyle}>Giá thuê / tuần (đ)</label>
           <input type="number" style={fieldStyle} value={price} onChange={(e) => setPrice(Number(e.target.value))} />
         </div>
       </div>
@@ -201,7 +201,7 @@ function RentalRequestsScreen({ bookings, onRespond }) {
               <div style={{ flex: 1, minWidth: 180 }}>
                 <p style={{ fontFamily: F.display, fontWeight: 600, fontSize: 14, color: T.ink, margin: 0 }}>{b.product?.name || "Thiết bị"}</p>
                 <p style={{ fontFamily: F.body, fontSize: 12, color: T.inkFaint, margin: "3px 0 0" }}>Từ {b.renterName}{b.contactPhone ? ` · ${b.contactName || ""} ${b.contactPhone}`.trim() : ""}</p>
-                <p style={{ fontFamily: F.mono, fontSize: 11, color: T.inkFaint, margin: "2px 0 0" }}>{b.start} → {b.end}{b.pickupName ? ` · ${b.pickupName}` : ""}</p>
+                <p style={{ fontFamily: F.mono, fontSize: 11, color: T.inkFaint, margin: "2px 0 0" }}>{b.weeks ? `${b.weeks} tuần · ${b.start} → ${b.end}` : `${b.start} → ${b.end}`}{b.pickupName ? ` · ${b.pickupName}` : ""}</p>
               </div>
               <StatusBadge status={b.status} />
               <div style={{ display: "flex", gap: 8 }}>

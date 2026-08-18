@@ -236,10 +236,10 @@ const seedBookings = [
   { id: "b_seed2", renterName: "Thu Hà (K67)", productId: "p6", start: "2026-08-10", end: "2026-08-12", nights: 2, total: 80000 + Math.round(1800000 * DEPOSIT_RATE) + INSURANCE_FEE, pickup: "c7", status: "confirmed", handoverStage: "picked_up" },
 ];
 
-const savingsFor = (product, days = 5) => {
-  const rentalCost = product.price * days;
+const savingsFor = (product, weeks = 1) => {
+  const rentalCost = product.price * weeks;
   const pct = Math.round((1 - rentalCost / product.marketValue) * 100);
-  return { rentalCost, pct: Math.max(pct, 0), days };
+  return { rentalCost, pct: Math.max(pct, 0), weeks };
 };
 
 // ---------------------------------------------------------------------------
@@ -488,7 +488,7 @@ function ProductGridCard({ p, onClick, compareChecked, onToggleCompare }) {
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10, paddingTop: 10, borderTop: `1px solid ${T.line}` }}>
           <span style={{ fontFamily: F.mono, fontSize: 14, fontWeight: 600, color: T.accentDeep }}>
-            {money(p.price)}<span style={{ fontSize: 10.5, color: T.inkFaint, fontWeight: 400 }}>/ngày</span>
+            {money(p.price)}<span style={{ fontSize: 10.5, color: T.inkFaint, fontWeight: 400 }}>/tuần</span>
           </span>
           <ArrowRight size={14} color={T.inkFaint} />
         </div>
@@ -589,12 +589,12 @@ function CompareBar({ ids, onOpen, onClear }) {
 
 function CompareModal({ products, onClose, onOpenDetail }) {
   const rows = [
-    { label: "Giá / ngày", get: (p) => money(p.price) },
+    { label: "Giá / tuần", get: (p) => money(p.price) },
     { label: "Phân hạng", get: (p) => `Hạng ${p.grade}` },
     { label: "Đánh giá thiết bị", get: (p) => `${p.rating} (${p.rentedCount} lượt thuê)` },
     { label: "Giá trị thị trường", get: (p) => moneyShort(p.marketValue) },
     { label: "Tiền cọc (65%)", get: (p) => money(Math.round(p.marketValue * DEPOSIT_RATE)) },
-    { label: "Tiết kiệm vs mua (5 ngày)", get: (p) => `~${savingsFor(p).pct}%` },
+    { label: "Tiết kiệm vs mua (1 tuần)", get: (p) => `~${savingsFor(p).pct}%` },
   ];
   return (
     <Modal onClose={onClose} width={720}>
@@ -751,52 +751,50 @@ function IncludedCard({ product }) {
 }
 
 function BookingPanel({ product, onConfirm }) {
-  const [start, setStart] = useState("2026-08-15");
-  const [end, setEnd] = useState("2026-08-18");
-  const [pickupId, setPickupId] = useState(PICKUP_POINTS[0].id);
+  const [start, setStart] = useState(new Date().toISOString().slice(0, 10));
+  const [weeks, setWeeks] = useState(1);
+  const [pickupName, setPickupName] = useState("");
+  const [insured, setInsured] = useState(true);
   const [contactName, setContactName] = useState(CURRENT_USER);
   const [contactPhone, setContactPhone] = useState(CURRENT_USER_PHONE);
 
-  const pick = (dateStr) => {
-    const d = Number(dateStr.split("-")[2]);
-    const s = start ? Number(start.split("-")[2]) : null;
-    if (!s || (start && end)) { setStart(dateStr); setEnd(""); }
-    else if (d > s) setEnd(dateStr);
-    else setStart(dateStr);
-  };
-
-  const nights = useMemo(() => {
-    if (!start || !end) return 0;
-    const d = (new Date(end) - new Date(start)) / 86400000;
-    return d > 0 ? Math.round(d) : 0;
-  }, [start, end]);
-
-  const rentalCost = Math.max(nights, 0) * product.price;
+  const rentalCost = weeks * product.price;
   const deposit = Math.round(product.marketValue * DEPOSIT_RATE);
-  const total = rentalCost + deposit + INSURANCE_FEE;
-  const valid = nights > 0 && contactName.trim().length > 0 && contactPhone.trim().length > 0;
-  const savings = savingsFor(product, Math.max(nights, 5));
+  const insuranceFee = insured ? INSURANCE_FEE : 0;
+  const total = rentalCost + deposit + insuranceFee;
+  const end = new Date(new Date(start).getTime() + weeks * 7 * 86400000).toISOString().slice(0, 10);
+  const valid = pickupName.trim().length > 0 && contactName.trim().length > 0 && contactPhone.trim().length > 0;
+  const savings = savingsFor(product, weeks);
+
+  const WEEK_OPTIONS = [1, 2, 3];
 
   return (
     <div style={{ position: "sticky", top: 20, background: T.surface, border: `1px solid ${T.line}`, borderRadius: 16, padding: 20 }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 5, marginBottom: 4 }}>
         <span style={{ fontFamily: F.mono, fontSize: 20, fontWeight: 700, color: T.ink }}>{money(product.price)}</span>
-        <span style={{ fontFamily: F.body, fontSize: 12, color: T.inkFaint }}>/ ngày</span>
+        <span style={{ fontFamily: F.body, fontSize: 12, color: T.inkFaint }}>/ tuần</span>
       </div>
-      <p style={{ fontFamily: F.body, fontSize: 11, color: T.green, margin: "0 0 14px" }}>Giá trị thị trường {moneyShort(product.marketValue)} — thuê tiết kiệm ~{savings.pct}%</p>
+      <p style={{ fontFamily: F.body, fontSize: 11, color: T.green, margin: "0 0 6px" }}>Giá trị thị trường {moneyShort(product.marketValue)} — thuê tiết kiệm ~{savings.pct}%</p>
+      <p style={{ fontFamily: F.body, fontSize: 11, color: T.inkFaint, margin: "0 0 14px" }}>Cho thuê theo tuần, tối thiểu 1 tuần.</p>
 
-      <AvailabilityCalendar product={product} start={start} end={end} onPick={pick} />
+      <label style={{ ...labelStyle, display: "block" }}>Thời gian thuê</label>
+      <div style={{ display: "flex", gap: 8, marginTop: 7 }}>
+        {WEEK_OPTIONS.map((w) => (
+          <button key={w} onClick={() => setWeeks(w)} style={{
+            flex: 1, padding: "10px 0", borderRadius: 10, cursor: "pointer",
+            border: weeks === w ? `1.5px solid ${T.teal}` : `1px solid ${T.line}`,
+            background: weeks === w ? T.tealBg : T.surface, color: weeks === w ? T.tealDeep : T.ink,
+            fontFamily: F.display, fontWeight: 600, fontSize: 13,
+          }}>{w} tuần</button>
+        ))}
+      </div>
 
-      <p style={{ fontFamily: F.mono, fontSize: 12, color: T.inkSoft, margin: "10px 0 0" }}>
-        {start ? start.slice(5).split("-").reverse().join("/") : "—"} → {end ? end.slice(5).split("-").reverse().join("/") : "—"}
-        {valid && <span style={{ color: T.inkFaint }}> ({nights} đêm)</span>}
-      </p>
-      {!valid && <p style={{ fontFamily: F.body, fontSize: 11, color: T.danger, marginTop: 4 }}>Chọn ngày nhận rồi chọn ngày trả trên lịch.</p>}
+      <label style={{ ...labelStyle, display: "block", marginTop: 14 }}>Ngày bắt đầu</label>
+      <input type="date" value={start} onChange={(e) => setStart(e.target.value)} style={fieldStyle} />
+      <p style={{ fontFamily: F.body, fontSize: 10.5, color: T.inkFaint, margin: "4px 0 0" }}>Từ {start.slice(5).split("-").reverse().join("/")} → {end.slice(5).split("-").reverse().join("/")} ({weeks} tuần)</p>
 
-      <label style={{ ...labelStyle, display: "block", marginTop: 14 }}>Điểm nhận / trả đồ</label>
-      <select value={pickupId} onChange={(e) => setPickupId(e.target.value)} style={fieldStyle}>
-        {PICKUP_POINTS.map((pt) => <option key={pt.id} value={pt.id}>{pt.name} · {pt.hours}</option>)}
-      </select>
+      <label style={{ ...labelStyle, display: "block", marginTop: 14 }}>Địa điểm nhận / trả đồ</label>
+      <input type="text" value={pickupName} onChange={(e) => setPickupName(e.target.value)} placeholder="VD: Sảnh nhà C7, Đại học Bách Khoa" style={fieldStyle} />
 
       <label style={{ ...labelStyle, display: "block", marginTop: 14 }}>Họ tên</label>
       <input style={fieldStyle} value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="VD: Nguyễn Văn A" />
@@ -809,16 +807,21 @@ function BookingPanel({ product, onConfirm }) {
       </div>
 
       <div style={{ marginTop: 16, paddingTop: 14, borderTop: `1px dashed ${T.line}` }}>
-        {[
-          [`${Math.max(nights, 0)} đêm × ${money(product.price)}`, money(Math.max(rentalCost, 0))],
-          ["Tiền cọc (65% giá trị thiết bị, hoàn lại)", money(deposit)],
-          ["Phí quỹ bảo hiểm rủi ro", money(INSURANCE_FEE)],
-        ].map(([label, value], i) => (
-          <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "4px 0" }}>
-            <span style={{ fontFamily: F.body, fontSize: 12, color: T.inkSoft }}>{label}</span>
-            <span style={{ fontFamily: F.mono, fontSize: 12, color: T.ink }}>{value}</span>
-          </div>
-        ))}
+        <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0" }}>
+          <span style={{ fontFamily: F.body, fontSize: 12, color: T.inkSoft }}>{weeks} tuần × {money(product.price)}</span>
+          <span style={{ fontFamily: F.mono, fontSize: 12, color: T.ink }}>{money(Math.max(rentalCost, 0))}</span>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0" }}>
+          <span style={{ fontFamily: F.body, fontSize: 12, color: T.inkSoft }}>Tiền cọc (65% giá trị thiết bị, hoàn lại)</span>
+          <span style={{ fontFamily: F.mono, fontSize: 12, color: T.ink }}>{money(deposit)}</span>
+        </div>
+        <label style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "space-between", padding: "4px 0", cursor: "pointer" }}>
+          <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <input type="checkbox" checked={insured} onChange={(e) => setInsured(e.target.checked)} style={{ width: 15, height: 15, accentColor: T.teal, cursor: "pointer" }} />
+            <span style={{ fontFamily: F.body, fontSize: 12, color: T.inkSoft }}>Phí quỹ bảo hiểm rủi ro</span>
+          </span>
+          <span style={{ fontFamily: F.mono, fontSize: 12, color: T.ink }}>{money(insuranceFee)}</span>
+        </label>
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8, paddingTop: 10, borderTop: `1px dashed ${T.line}` }}>
           <span style={{ fontFamily: F.display, fontSize: 13.5, fontWeight: 600, color: T.ink }}>Tổng cộng</span>
           <span style={{ fontFamily: F.mono, fontSize: 15, fontWeight: 700, color: T.accentDeep }}>{money(Math.max(total, 0))}</span>
@@ -826,7 +829,7 @@ function BookingPanel({ product, onConfirm }) {
         <p style={{ fontFamily: F.body, fontSize: 10, color: T.inkFaint, marginTop: 8 }}>Tiền cọc được hoàn lại sau khi LabShare đối soát tình trạng khi trả đồ.</p>
       </div>
 
-      <PrimaryButton style={{ marginTop: 16 }} disabled={!valid} onClick={() => onConfirm({ product, start, end, nights, total, pickupId, contactName: contactName.trim(), contactPhone: contactPhone.trim() })} icon={ArrowRight}>
+      <PrimaryButton style={{ marginTop: 16 }} disabled={!valid} onClick={() => onConfirm({ product, weeks, start, end, total, pickupName: pickupName.trim(), insured, contactName: contactName.trim(), contactPhone: contactPhone.trim() })} icon={ArrowRight}>
         Xác nhận thuê
       </PrimaryButton>
     </div>
@@ -900,13 +903,14 @@ function QRPattern() {
 
 function QRModal({ booking, onClose, onConfirm }) {
   const pt = PICKUP_POINTS.find((p) => p.id === booking.pickupId);
+  const pickupLabel = booking.pickupName || pt?.name;
   return (
     <Modal onClose={onClose} width={360}>
       <div style={{ textAlign: "center" }}>
         <p style={{ fontFamily: F.display, fontSize: 15, fontWeight: 600, color: T.ink, margin: "0 0 4px" }}>Xác nhận nhận đồ</p>
         <p style={{ fontFamily: F.body, fontSize: 12, color: T.inkFaint, margin: "0 0 16px" }}>Đơn #{booking.id.slice(-5).toUpperCase()} · {booking.product.name}</p>
         <QRPattern />
-        <p style={{ fontFamily: F.body, fontSize: 11.5, color: T.inkFaint, margin: "14px 0 6px" }}>CTV tại {pt ? pt.name : "điểm hẹn"} quét mã này để xác nhận bàn giao.</p>
+        <p style={{ fontFamily: F.body, fontSize: 11.5, color: T.inkFaint, margin: "14px 0 6px" }}>CTV tại {pickupLabel || "điểm hẹn"} quét mã này để xác nhận bàn giao.</p>
         <p style={{ fontFamily: F.body, fontSize: 11, color: T.inkFaint, margin: "0 0 18px" }}>LabShare đã quay video test nhanh thiết bị trước khi bàn giao ✓</p>
         <PrimaryButton onClick={onConfirm} icon={Check}>Đã quét — xác nhận nhận đồ</PrimaryButton>
       </div>
@@ -990,7 +994,7 @@ function MyRentalsScreen({ bookings, catalog, onOpenQR, onOpenReturn }) {
         <div className="rm-grid">
           {mine.map((b) => {
             const product = catalog.find((p) => p.id === b.productId) || b.product;
-            const pt = PICKUP_POINTS.find((p) => p.id === b.pickupId);
+            const pt = PICKUP_POINTS.find((p) => p.id === b.pickupId) || (b.pickupName ? { name: b.pickupName } : undefined);
             return (
               <Card key={b.id} style={{ padding: 16 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
@@ -1067,7 +1071,7 @@ function MyConsignmentsScreen({ consignments, catalog, onAdd }) {
                   <>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6 }}>
                       <GradeBadge grade={live.grade} />
-                      <span style={{ fontFamily: F.mono, fontSize: 12, color: T.accentDeep }}>{money(live.price)}/ngày</span>
+                      <span style={{ fontFamily: F.mono, fontSize: 12, color: T.accentDeep }}>{money(live.price)}/tuần</span>
                     </div>
                     <p style={{ fontFamily: F.body, fontSize: 11, color: T.inkFaint, margin: "8px 0 0" }}>Bạn nhận {live.splitSenior}% doanh thu · {live.rentedCount} lượt thuê</p>
                     <p style={{ fontFamily: F.mono, fontSize: 12.5, color: T.green, margin: "4px 0 0" }}>Đã kiếm: {money(live.earnedSoFar)}</p>
@@ -1400,16 +1404,17 @@ export default function App({ onExit }) {
 
   const confirmBooking = (b) => {
     const id = "b" + Date.now();
-    setBookings((list) => [{ id, productId: b.product.id, start: b.start, end: b.end, nights: b.nights, total: b.total, pickupId: b.pickupId, renterName: b.contactName || CURRENT_USER_RENTER_LABEL, contactName: b.contactName, contactPhone: b.contactPhone, status: "pending", handoverStage: null }, ...list]);
+    setBookings((list) => [{ id, productId: b.product.id, start: b.start, end: b.end, weeks: b.weeks, nights: b.weeks * 7, total: b.total, pickupName: b.pickupName, renterName: b.contactName || CURRENT_USER_RENTER_LABEL, contactName: b.contactName, contactPhone: b.contactPhone, status: "pending", handoverStage: null }, ...list]);
     setConfirmedBooking({ ...b, id });
     // Sync to backend (renter action). On success adopt the server booking id;
     // on failure keep the optimistic local entry (prototype fallback).
     api("/bookings", {}, {
-      productId: b.product.sealCode || b.product.id, pickupId: b.pickupId,
-      startDate: b.start, endDate: b.end,
+      productId: b.product.sealCode || b.product.id,
+      startDate: b.start, weeks: b.weeks,
+      pickupName: b.pickupName, insured: b.insured !== false,
       contactName: b.contactName, contactPhone: b.contactPhone,
     }).then(({ booking }) => {
-      setBookings((list) => list.map((x) => (x.id === id ? { ...x, id: booking.id, start: booking.start, end: booking.end, nights: booking.nights, total: booking.total, pickupId: booking.pickupId } : x)));
+      setBookings((list) => list.map((x) => (x.id === id ? { ...x, id: booking.id, start: booking.start, end: booking.end, weeks: booking.weeks, nights: booking.nights, total: booking.total, pickupName: booking.pickupName } : x)));
     }).catch(() => { /* keep local */ });
   };
 
@@ -1424,7 +1429,7 @@ export default function App({ onExit }) {
       if (booking) {
         setCatalog((list) => list.map((p) => {
           if (p.id !== booking.productId) return p;
-          const earned = Math.round((booking.nights * p.price) * (p.splitSenior / 100));
+          const earned = Math.round((booking.weeks * p.price) * (p.splitSenior / 100));
           return { ...p, earnedSoFar: p.earnedSoFar + earned, rentedCount: p.rentedCount + 1 };
         }));
       }

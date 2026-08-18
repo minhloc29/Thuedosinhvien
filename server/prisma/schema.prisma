@@ -95,11 +95,13 @@ model Booking {
   product         Product     @relation(fields: [productId], references: [id])
   renterId        String
   renter          User        @relation("RenterBookings", fields: [renterId], references: [id])
-  pickupPointId   String
-  pickupPoint     PickupPoint @relation(fields: [pickupPointId], references: [id])
+  pickupPointId   String?
+  pickupPoint     PickupPoint? @relation(fields: [pickupPointId], references: [id])
+  pickupName      String?
   startDate       DateTime
   endDate         DateTime
   nights          Int
+  weeks           Int      @default(1)
   rentalCost      Int
   deposit         Int
   insuranceFee    Int

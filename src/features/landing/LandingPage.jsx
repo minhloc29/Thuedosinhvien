@@ -192,28 +192,32 @@ export default function LandingPage({ onEnter }) {
       </nav>
 
       {/* ---------- ① Hero ---------- */}
-      <header style={{ background: "radial-gradient(700px 420px at 80% -10%, rgba(42,111,104,0.14), transparent 60%), radial-gradient(600px 380px at 10% 110%, rgba(42,111,104,0.14), transparent %), #EEF1F6", color: T.ink, position: "relative", overflow: "hidden" }}>
+      <header style={{ background: "radial-gradient(700px 420px at 80% -10%, rgba(42,111,104,0.45), transparent 60%), radial-gradient(600px 380px at 10% 110%, rgba(42,111,104,0.40), transparent %), #10151B", color: "#fff", position: "relative", overflow: "hidden" }}>
         <img src={heroBg} alt="" aria-hidden style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(238,241,246,0.90) 0%, rgba(238,241,246,0.86) 50%, rgba(238,241,246,0.94) 100%)" }} />
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(13,18,24,0.78) 0%, rgba(13,18,24,0.62) 45%, rgba(13,18,24,0.86) 100%)" }} />
         <div className="lp-hero" style={{ position: "relative", maxWidth: 1120, margin: "0 auto", padding: "76px 24px 84px", display: "grid", gridTemplateColumns: "1fr", gap: 40, alignItems: "start" }}>
           <div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 7, background: T.surface, border: `1px solid ${T.line}`, padding: "7px 14px", borderRadius: 30, marginBottom: 22 }}>
-              <MapPin size={13} color={T.teal} />
-              <span style={{ fontFamily: F.body, fontSize: 12.5, color: T.inkSoft }}>Hiện thử nghiệm tại <strong style={{ color: T.ink }}>HUST</strong></span>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 7, background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.28)", padding: "7px 14px", borderRadius: 30, marginBottom: 22 }}>
+              <MapPin size={13} color="#8FD8CE" />
+              <span style={{ fontFamily: F.body, fontSize: 12.5, color: "rgba(255,255,255,0.85)" }}>Hiện thử nghiệm tại <strong style={{ color: "#fff" }}>HUST</strong></span>
             </div>
-            <h1 style={{ fontFamily: F.display, fontSize: "clamp(32px, 8vw, 58px)", fontWeight: 700, lineHeight: 1.06, margin: "0 0 16px", letterSpacing: -1 }}>
+            <h1 style={{ fontFamily: F.display, fontSize: "clamp(32px, 8vw, 58px)", fontWeight: 700, lineHeight: 1.06, margin: "0 0 16px", letterSpacing: -1, color: "#fff" }}>
               Không cần mua thiết bị chỉ để làm một project.<br />
-              <span style={{ color: T.teal }}>Thuê thiết bị STEM theo ngày/tuần.</span>
+              <span style={{ color: "#7FD6C9" }}>Thuê thiết bị STEM theo ngày/tuần.</span>
             </h1>
-            <p style={{ fontFamily: F.body, fontSize: 17, color: T.inkSoft, maxWidth: 500, margin: "0 0 22px", lineHeight: 1.6 }}>
+            <p style={{ fontFamily: F.body, fontSize: 17, color: "rgba(255,255,255,0.82)", maxWidth: 500, margin: "0 0 22px", lineHeight: 1.6 }}>
               Oscilloscope, Power Supply, Arduino, STM32, Raspberry Pi, Logic Analyzer — ngay tại trường, giá minh bạch và được kiểm tra trước khi nhận.
             </p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 26 }}>
-              {["Oscilloscope", "Power Supply", "Arduino", "STM32", "Raspberry Pi", "Logic Analyzer"].map((t) => <Chip key={t}>{t}</Chip>)}
+              {["Oscilloscope", "Power Supply", "Arduino", "STM32", "Raspberry Pi", "Logic Analyzer"].map((t) => (
+                <span key={t} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.25)", padding: "7px 13px", borderRadius: 24, fontFamily: F.mono, fontSize: 11.5, color: "rgba(255,255,255,0.9)" }}>{t}</span>
+              ))}
             </div>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <Primary big onClick={() => scrollTo("kits")}>Tìm thiết bị <ArrowRight size={17} strokeWidth={2.5} /></Primary>
-              <Ghost onClick={() => scrollTo("suggest")}>Tôi có project cần thiết bị <Sparkles size={15} color={T.teal} /></Ghost>
+              <button onClick={() => scrollTo("suggest")} style={{ padding: "12px 20px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.4)", background: "transparent", color: "#fff", cursor: "pointer", fontFamily: F.body, fontWeight: 600, fontSize: 14, display: "inline-flex", alignItems: "center", gap: 8 }}>
+                Tôi có project cần thiết bị <Sparkles size={15} color="#7FD6C9" />
+              </button>
             </div>
           </div>
         </div>
