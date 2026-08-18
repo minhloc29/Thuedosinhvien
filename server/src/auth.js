@@ -12,6 +12,7 @@ export const publicUser = (u) => ({
   name: u.name,
   studentId: u.studentId,
   email: u.email,
+  phone: u.phone,
   isAdmin: u.isAdmin,
   createdAt: u.createdAt,
 });

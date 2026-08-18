@@ -102,7 +102,7 @@ function AppraisalModal({ item, onClose, onApprove, onReject }) {
   return (
     <Modal onClose={onClose} width={460}>
       <h2 style={{ fontFamily: F.display, fontSize: 18, fontWeight: 700, color: T.ink, margin: "0 0 4px" }}>Thẩm định ký gửi</h2>
-      <p style={{ fontFamily: F.body, fontSize: 12.5, color: T.inkFaint, margin: "0 0 16px" }}>{item.name} · Ký gửi bởi {item.seniorName}</p>
+      <p style={{ fontFamily: F.body, fontSize: 12.5, color: T.inkFaint, margin: "0 0 16px" }}>{item.name} · Ký gửi bởi {item.seniorName}{item.contactPhone ? ` · ${item.contactName || item.seniorName} ${item.contactPhone}` : ""}</p>
 
       <div style={{ background: T.bg, borderRadius: 10, padding: 12, marginBottom: 14 }}>
         <p style={{ fontFamily: F.body, fontSize: 12, color: T.inkSoft, margin: 0, lineHeight: 1.6 }}>{item.desc}</p>
@@ -165,7 +165,7 @@ function AppraisalQueueScreen({ items, onSelect }) {
               <div style={{ fontSize: 28 }}>{it.emoji || catInfo(it.category).emoji}</div>
               <div style={{ flex: 1, minWidth: 180 }}>
                 <p style={{ fontFamily: F.display, fontWeight: 600, fontSize: 14, color: T.ink, margin: 0 }}>{it.name}</p>
-                <p style={{ fontFamily: F.body, fontSize: 12, color: T.inkFaint, margin: "3px 0 0" }}>Ký gửi bởi {it.seniorName} · {it.dateSubmitted}</p>
+                <p style={{ fontFamily: F.body, fontSize: 12, color: T.inkFaint, margin: "3px 0 0" }}>Ký gửi bởi {it.seniorName}{it.contactPhone ? ` · ${it.contactName || ""} ${it.contactPhone}`.trim() : ""} · {it.dateSubmitted}</p>
                 <p style={{ fontFamily: F.mono, fontSize: 11.5, color: T.inkFaint, margin: "2px 0 0" }}>Khai báo: {money(it.estimatedValue)}</p>
               </div>
               <StatusBadge status="appraisal_pending" />
@@ -198,7 +198,7 @@ function RentalRequestsScreen({ bookings, onRespond }) {
               <div style={{ fontSize: 28 }}>{b.product?.emoji || "📦"}</div>
               <div style={{ flex: 1, minWidth: 180 }}>
                 <p style={{ fontFamily: F.display, fontWeight: 600, fontSize: 14, color: T.ink, margin: 0 }}>{b.product?.name || "Thiết bị"}</p>
-                <p style={{ fontFamily: F.body, fontSize: 12, color: T.inkFaint, margin: "3px 0 0" }}>Từ {b.renterName}</p>
+                <p style={{ fontFamily: F.body, fontSize: 12, color: T.inkFaint, margin: "3px 0 0" }}>Từ {b.renterName}{b.contactPhone ? ` · ${b.contactName || ""} ${b.contactPhone}`.trim() : ""}</p>
                 <p style={{ fontFamily: F.mono, fontSize: 11, color: T.inkFaint, margin: "2px 0 0" }}>{b.start} → {b.end}{b.pickupName ? ` · ${b.pickupName}` : ""}</p>
               </div>
               <StatusBadge status={b.status} />

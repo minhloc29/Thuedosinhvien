@@ -7,7 +7,7 @@ const router = Router();
 // POST /auth/register  { name, studentId?, email, password }
 router.post("/register", async (req, res) => {
   try {
-    const { name, studentId, email, password } = req.body || {};
+    const { name, studentId, email, password, phone } = req.body || {};
     if (!name || !email || !password) {
       return res.status(400).json({ error: "name, email, password are required" });
     }
@@ -27,6 +27,7 @@ router.post("/register", async (req, res) => {
         name: String(name),
         studentId: studentIdNorm,
         email: emailNorm,
+        phone: phone ? String(phone).trim() : null,
         passwordHash: await hashPassword(String(password)),
       },
     });

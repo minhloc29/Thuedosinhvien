@@ -15,6 +15,8 @@ function toApi(c) {
     seniorName: c.senior?.name,
     estimatedValue: c.estimatedValue,
     desc: c.desc,
+    contactName: c.contactName,
+    contactPhone: c.contactPhone,
     status: c.status,
     dateSubmitted: c.submittedAt.toISOString().slice(0, 10).split("-").reverse().join("/"),
     productId: c.productId,
@@ -24,7 +26,7 @@ function toApi(c) {
 // POST /api/consignments  { name, category, estimatedValue, desc }
 router.post("/", async (req, res) => {
   try {
-    const { name, category, estimatedValue, desc } = req.body || {};
+    const { name, category, estimatedValue, desc, contactName, contactPhone } = req.body || {};
     if (!name || !category || !estimatedValue || Number(estimatedValue) <= 0) {
       return res.status(400).json({ error: "name, category, estimatedValue are required" });
     }
@@ -38,6 +40,8 @@ router.post("/", async (req, res) => {
         seniorId: req.userId,
         estimatedValue: Number(estimatedValue),
         desc: String(desc || "").trim() || "Chưa có mô tả chi tiết.",
+        contactName: contactName ? String(contactName).trim() : null,
+        contactPhone: contactPhone ? String(contactPhone).trim() : null,
       },
       include: { category: true, senior: true },
     });

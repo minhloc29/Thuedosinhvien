@@ -3,6 +3,7 @@ import {
   Search, Plus, Check, X, HomeIcon, User, ShieldCheck, ArrowRight,
   Wallet, Package, Tag, Scale, MapPin, Star, StarBorder,
 } from "../lib/icons";
+import heroBg from "../assets/hero-bg1.jpg";
 
 // ---------------------------------------------------------------------------
 // Design tokens
@@ -57,6 +58,7 @@ const moneyShort = (n) => (n >= 1000000 ? (n / 1000000).toFixed(n % 1000000 === 
 // real user's name. Falls back to a demo label before any login happens.
 let CURRENT_USER = "Minh Quân (K67)";
 let CURRENT_USER_RENTER_LABEL = "Bạn (Minh Quân - K67)";
+let CURRENT_USER_PHONE = "";
 
 // ---------------------------------------------------------------------------
 // API helper (session-based). No auto-login: every call carries the token the
@@ -84,6 +86,7 @@ function setSession(token, user) {
   if (user) {
     CURRENT_USER = user.name;
     CURRENT_USER_RENTER_LABEL = `Bạn (${user.name})`;
+    CURRENT_USER_PHONE = user.phone || "";
   }
 }
 function api(path, options = {}, body) {
@@ -448,7 +451,7 @@ const MATCH_BADGES = (() => {
   const byPrice = [...SEED_PRODUCTS].sort((a, b) => a.price - b.price)[0];
   const byRating = [...SEED_PRODUCTS].filter((p) => p.rentedCount >= 10).sort((a, b) => b.rating - a.rating)[0];
   const map = {};
-  if (byRating) map[byRating.id] = { icon: "\u2B50", label: "Đánh giá cao nhất", bg: T.tealBg, fg: T.tealDeep };
+  if (byRating) map[byRating.id] = {label: "Đánh giá cao nhất", bg: T.tealBg, fg: T.tealDeep };
   if (byPrice && !map[byPrice.id]) map[byPrice.id] = {label: "Giá tốt nhất", bg: T.accentBg, fg: T.accentDeep };
   return map;
 })();
@@ -494,28 +497,34 @@ function ProductGridCard({ p, onClick, compareChecked, onToggleCompare }) {
 function HomeScreen({ products, onOpen, query, setQuery, catFilter, setCatFilter, maxPrice, setMaxPrice, compareIds, onToggleCompare, projectFilter, setProjectFilter }) {
   return (
     <div>
-      <div style={{ background: T.ink, borderRadius: 20, padding: "34px 32px", marginBottom: 22 }}>
-        <h1 style={{ fontFamily: F.display, fontSize: 26, fontWeight: 700, color: "#fff", margin: 0, lineHeight: 1.25 }}>
-          Cần thiết bị đo cho project?<br />Đừng mua — mượn từ khoá trên.
-        </h1>
-        <p style={{ fontFamily: F.body, fontSize: 13, color: "#B9C0D1", margin: "8px 0 16px", maxWidth: 480 }}>
-          Thuê oscilloscope, kit Arduino/STM32, PLC... từ sinh viên khoá trên đã ký gửi qua LabShare — mọi thiết bị đều được thẩm định, phân hạng và niêm phong trước khi cho thuê.
-        </p>
-        <p style={{ fontFamily: F.body, fontSize: 11.5, color: "#8891A6", margin: "0 0 8px" }}>Bạn cần thiết bị cho việc gì?</p>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          {PROJECT_BUNDLES.map((b) => {
-            const isActive = projectFilter === b.id;
-            return (
-              <button key={b.id} onClick={() => setProjectFilter(isActive ? null : b.id)} style={{
-                display: "flex", alignItems: "center", gap: 6, padding: "7px 13px", borderRadius: 20,
-                border: `1px solid ${isActive ? T.accent : "rgba(255,255,255,0.18)"}`,
-                background: isActive ? T.accent : "rgba(255,255,255,0.08)", cursor: "pointer",
-              }}>
-                <span style={{ fontSize: 13 }}>{b.emoji}</span>
-                <span style={{ fontFamily: F.body, fontSize: 12, fontWeight: 500, color: isActive ? T.accentDeep : "#fff" }}>{b.label}</span>
-              </button>
-            );
-          })}
+      <div style={{ position: "relative", overflow: "hidden", borderRadius: 20, marginBottom: 22 }}>
+        <img src={heroBg} alt="" aria-hidden style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(12,16,26,0.78) 0%, rgba(12,16,26,0.55) 45%, rgba(12,16,26,0.82) 100%)" }} />
+        <div style={{ position: "relative", padding: "40px 32px" }}>
+          <span style={{ display: "inline-block", fontFamily: F.mono, fontSize: 10.5, letterSpacing: 1.4, textTransform: "uppercase", color: "#9AE6CF", background: "rgba(40,167,130,0.16)", border: "1px solid rgba(40,167,130,0.4)", padding: "4px 10px", borderRadius: 20, marginBottom: 14 }}>Ký gửi – Thẩm định – Cho thuê</span>
+          <h1 style={{ fontFamily: F.display, fontSize: 27, fontWeight: 700, color: "#fff", margin: 0, lineHeight: 1.25, textShadow: "0 2px 18px rgba(0,0,0,0.35)" }}>
+            Cần thiết bị đo cho project?<br />Đừng mua — mượn từ khoá trên.
+          </h1>
+          <p style={{ fontFamily: F.body, fontSize: 13, color: "#D8DEEB", margin: "10px 0 18px", maxWidth: 500, lineHeight: 1.6 }}>
+            Thuê oscilloscope, kit Arduino/STM32, PLC... từ sinh viên khoá trên đã ký gửi qua LabShare — mọi thiết bị đều được thẩm định, phân hạng và niêm phong trước khi cho thuê.
+          </p>
+          <p style={{ fontFamily: F.body, fontSize: 11.5, color: "#9FB0CA", margin: "0 0 8px" }}>Bạn cần thiết bị cho việc gì?</p>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {PROJECT_BUNDLES.map((b) => {
+              const isActive = projectFilter === b.id;
+              return (
+                <button key={b.id} onClick={() => setProjectFilter(isActive ? null : b.id)} style={{
+                  display: "flex", alignItems: "center", gap: 6, padding: "7px 13px", borderRadius: 20,
+                  border: `1px solid ${isActive ? "#7CD6B8" : "rgba(255,255,255,0.2)"}`,
+                  background: isActive ? "rgba(40,167,130,0.35)" : "rgba(255,255,255,0.1)", cursor: "pointer",
+                  backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)",
+                }}>
+                  <span style={{ fontSize: 13 }}>{b.emoji}</span>
+                  <span style={{ fontFamily: F.body, fontSize: 12, fontWeight: 500, color: isActive ? "#fff" : "#fff" }}>{b.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -739,6 +748,8 @@ function BookingPanel({ product, onConfirm }) {
   const [start, setStart] = useState("2026-08-15");
   const [end, setEnd] = useState("2026-08-18");
   const [pickupId, setPickupId] = useState(PICKUP_POINTS[0].id);
+  const [contactName, setContactName] = useState(CURRENT_USER);
+  const [contactPhone, setContactPhone] = useState(CURRENT_USER_PHONE);
 
   const pick = (dateStr) => {
     const d = Number(dateStr.split("-")[2]);
@@ -757,7 +768,7 @@ function BookingPanel({ product, onConfirm }) {
   const rentalCost = Math.max(nights, 0) * product.price;
   const deposit = Math.round(product.marketValue * DEPOSIT_RATE);
   const total = rentalCost + deposit + INSURANCE_FEE;
-  const valid = nights > 0;
+  const valid = nights > 0 && contactName.trim().length > 0 && contactPhone.trim().length > 0;
   const savings = savingsFor(product, Math.max(nights, 5));
 
   return (
@@ -780,6 +791,11 @@ function BookingPanel({ product, onConfirm }) {
       <select value={pickupId} onChange={(e) => setPickupId(e.target.value)} style={fieldStyle}>
         {PICKUP_POINTS.map((pt) => <option key={pt.id} value={pt.id}>{pt.name} · {pt.hours}</option>)}
       </select>
+
+      <label style={{ ...labelStyle, display: "block", marginTop: 14 }}>Họ tên</label>
+      <input style={fieldStyle} value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="VD: Nguyễn Văn A" />
+      <label style={{ ...labelStyle, display: "block", marginTop: 14 }}>Số điện thoại</label>
+      <input style={fieldStyle} value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} inputMode="tel" placeholder="VD: 0912 345 678" />
 
       <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 14, padding: "9px 11px", borderRadius: 10, border: `1px solid ${T.line}`, background: T.bg }}>
         <Wallet size={14} color={T.teal} />
@@ -804,7 +820,7 @@ function BookingPanel({ product, onConfirm }) {
         <p style={{ fontFamily: F.body, fontSize: 10, color: T.inkFaint, marginTop: 8 }}>Tiền cọc được hoàn lại sau khi LabShare đối soát tình trạng khi trả đồ.</p>
       </div>
 
-      <PrimaryButton style={{ marginTop: 16 }} disabled={!valid} onClick={() => onConfirm({ product, start, end, nights, total, pickupId })} icon={ArrowRight}>
+      <PrimaryButton style={{ marginTop: 16 }} disabled={!valid} onClick={() => onConfirm({ product, start, end, nights, total, pickupId, contactName: contactName.trim(), contactPhone: contactPhone.trim() })} icon={ArrowRight}>
         Xác nhận thuê
       </PrimaryButton>
     </div>
@@ -974,6 +990,7 @@ function MyRentalsScreen({ bookings, catalog, onOpenQR, onOpenReturn }) {
                 <p style={{ fontFamily: F.display, fontWeight: 600, fontSize: 14, color: T.ink, margin: "10px 0 0" }}>{product.name}</p>
                 <p style={{ fontFamily: F.mono, fontSize: 11.5, color: T.inkFaint, margin: "4px 0 0" }}>{b.start} → {b.end}</p>
                 {pt && <p style={{ fontFamily: F.body, fontSize: 11, color: T.inkFaint, margin: "2px 0 0" }}>\uD83D\uDCCD {pt.name}</p>}
+                {b.contactPhone && <p style={{ fontFamily: F.body, fontSize: 11, color: T.inkSoft, margin: "2px 0 0" }}>{b.contactName || CURRENT_USER} \u00B7 {b.contactPhone}</p>}
 
                 {b.status !== "rejected" && <RentalTimeline booking={b} />}
 
@@ -1019,7 +1036,7 @@ function MyConsignmentsScreen({ consignments, catalog, onAdd }) {
 
       {mine.length === 0 ? (
         <div style={{ textAlign: "center", marginTop: 40 }}>
-          <p style={{ fontSize: 36, marginBottom: 10 }}>\uD83C\uDFF7\uFE0F</p>
+          <p style={{ fontSize: 36, marginBottom: 10 }}></p>
           <p style={{ fontFamily: F.display, fontSize: 15.5, fontWeight: 600, color: T.ink, margin: 0 }}>Chưa ký gửi thiết bị nào</p>
         </div>
       ) : (
@@ -1033,6 +1050,7 @@ function MyConsignmentsScreen({ consignments, catalog, onAdd }) {
                   <StatusBadge status={c.status === "approved" ? "approved" : c.status === "rejected" ? "rejected" : "appraisal_pending"} />
                 </div>
                 <p style={{ fontFamily: F.display, fontWeight: 600, fontSize: 14, color: T.ink, margin: "10px 0 0" }}>{c.name}</p>
+                {c.contactPhone && <p style={{ fontFamily: F.body, fontSize: 11, color: T.inkSoft, margin: "3px 0 0" }}>{c.contactName || CURRENT_USER} · {c.contactPhone}</p>}
                 {live ? (
                   <>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6 }}>
@@ -1055,15 +1073,17 @@ function MyConsignmentsScreen({ consignments, catalog, onAdd }) {
 }
 
 function AddConsignmentModal({ onClose, onSubmit }) {
-  const [form, setForm] = useState({ name: "", category: "vi-dieu-khien", estimatedValue: "", desc: "" });
+  const [form, setForm] = useState({ name: "", category: "vi-dieu-khien", estimatedValue: "", desc: "", contactName: CURRENT_USER, contactPhone: CURRENT_USER_PHONE });
   const [error, setError] = useState("");
   const update = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
   const submit = () => {
+    if (!form.contactName.trim() || !form.contactPhone.trim()) { setError("Nhập họ tên và số điện thoại để LabShare liên hệ hẹn thẩm định."); return; }
     if (!form.name.trim() || !form.estimatedValue || Number(form.estimatedValue) <= 0) { setError("Nhập tên thiết bị và giá trị ước tính hợp lệ."); return; }
     setError("");
     onSubmit({
-      id: "c" + Date.now(), name: form.name.trim(), category: form.category, seniorName: CURRENT_USER,
+      id: "c" + Date.now(), name: form.name.trim(), category: form.category, seniorName: form.contactName.trim(),
+      contactName: form.contactName.trim(), contactPhone: form.contactPhone.trim(),
       estimatedValue: Number(form.estimatedValue), desc: form.desc.trim() || "Chưa có mô tả chi tiết.",
       dateSubmitted: "Hôm nay", status: "pending",
     });
@@ -1072,7 +1092,11 @@ function AddConsignmentModal({ onClose, onSubmit }) {
   return (
     <Modal onClose={onClose} width={460}>
       <h2 style={{ fontFamily: F.display, fontSize: 18, fontWeight: 700, color: T.ink, margin: "0 0 16px" }}>Ký gửi thiết bị</h2>
-      <label style={labelStyle}>Tên thiết bị</label>
+      <label style={labelStyle}>Họ tên</label>
+      <input style={fieldStyle} value={form.contactName} onChange={update("contactName")} placeholder="VD: Nguyễn Văn A" />
+      <label style={{ ...labelStyle, display: "block", marginTop: 14 }}>Số điện thoại</label>
+      <input style={fieldStyle} value={form.contactPhone} onChange={update("contactPhone")} inputMode="tel" placeholder="VD: 0912 345 678" />
+      <label style={{ ...labelStyle, display: "block", marginTop: 14 }}>Tên thiết bị</label>
       <input style={fieldStyle} value={form.name} onChange={update("name")} placeholder="VD: Kit ESP32 DevKit" />
       <label style={{ ...labelStyle, display: "block", marginTop: 14 }}>Danh mục</label>
       <select style={fieldStyle} value={form.category} onChange={update("category")}>
@@ -1148,7 +1172,7 @@ function AuthScreen({ onLogin, onBack }) {
   const [mode, setMode] = useState("login"); // login | register
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [form, setForm] = useState({ name: "", studentId: "", email: "", password: "" });
+  const [form, setForm] = useState({ name: "", studentId: "", email: "", password: "", phone: "" });
   const update = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
   const doAuth = (payload) => {
@@ -1173,6 +1197,7 @@ function AuthScreen({ onLogin, onBack }) {
     doAuth({
       name: form.name, studentId: form.studentId || undefined,
       email: form.email.trim(), password: form.password,
+      phone: form.phone.trim(),
     });
   };
 
@@ -1204,6 +1229,8 @@ function AuthScreen({ onLogin, onBack }) {
               <input style={fieldStyle} value={form.name} onChange={update("name")} placeholder="VD: Nguyễn Văn A" />
               <label style={{ ...labelStyle, display: "block", marginTop: 12 }}>Mã SV (tuỳ chọn)</label>
               <input style={fieldStyle} value={form.studentId} onChange={update("studentId")} placeholder="2022A123" />
+              <label style={{ ...labelStyle, display: "block", marginTop: 12 }}>Số điện thoại</label>
+              <input style={fieldStyle} value={form.phone} onChange={update("phone")} inputMode="tel" placeholder="VD: 0912 345 678" />
             </>
           )}
           <label style={labelStyle}>Email</label>
@@ -1361,13 +1388,14 @@ export default function App({ onExit }) {
 
   const confirmBooking = (b) => {
     const id = "b" + Date.now();
-    setBookings((list) => [{ id, productId: b.product.id, start: b.start, end: b.end, nights: b.nights, total: b.total, pickupId: b.pickupId, renterName: CURRENT_USER_RENTER_LABEL, status: "pending", handoverStage: null }, ...list]);
+    setBookings((list) => [{ id, productId: b.product.id, start: b.start, end: b.end, nights: b.nights, total: b.total, pickupId: b.pickupId, renterName: b.contactName || CURRENT_USER_RENTER_LABEL, contactName: b.contactName, contactPhone: b.contactPhone, status: "pending", handoverStage: null }, ...list]);
     setConfirmedBooking({ ...b, id });
     // Sync to backend (renter action). On success adopt the server booking id;
     // on failure keep the optimistic local entry (prototype fallback).
     api("/bookings", {}, {
       productId: b.product.sealCode || b.product.id, pickupId: b.pickupId,
       startDate: b.start, endDate: b.end,
+      contactName: b.contactName, contactPhone: b.contactPhone,
     }).then(({ booking }) => {
       setBookings((list) => list.map((x) => (x.id === id ? { ...x, id: booking.id, start: booking.start, end: booking.end, nights: booking.nights, total: booking.total, pickupId: booking.pickupId } : x)));
     }).catch(() => { /* keep local */ });
@@ -1402,6 +1430,7 @@ export default function App({ onExit }) {
     // Sync to backend; if it fails we keep the local entry (prototype fallback).
     api("/consignments", {}, {
       name: local.name, category: local.category, estimatedValue: local.estimatedValue, desc: local.desc,
+      contactName: local.contactName, contactPhone: local.contactPhone,
     }).then(({ consignment }) => {
       // Replace the optimistic id with the DB id (and show DB status).
       setConsignments((list) => list.map((c) => (c.id === local.id ? { ...c, id: consignment.id, dateSubmitted: consignment.dateSubmitted } : c)));

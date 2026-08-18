@@ -132,11 +132,11 @@ async function main() {
   // Users (password: "password123" for all)
   const pass = await bcrypt.hash("password123", 10);
   const users = {
-    minhquan: await prisma.user.upsert({ where: { email: "minhquan@bk.edu.vn" }, update: {}, create: { name: "Minh Quân (K67)", studentId: "2023A001", email: "minhquan@bk.edu.vn", passwordHash: pass, isAdmin: false } }),
-    thutrang: await prisma.user.upsert({ where: { email: "thutrang@bk.edu.vn" }, update: {}, create: { name: "Thu Trang (K65)", studentId: "2021A502", email: "thutrang@bk.edu.vn", passwordHash: pass, isAdmin: false } }),
-    ducanh: await prisma.user.upsert({ where: { email: "ducanh@bk.edu.vn" }, update: {}, create: { name: "Đức Anh (K66)", studentId: "2022A310", email: "ducanh@bk.edu.vn", passwordHash: pass, isAdmin: false } }),
-    hainam: await prisma.user.upsert({ where: { email: "hainam@bk.edu.vn" }, update: {}, create: { name: "Hải Nam (K66)", studentId: "2022A118", email: "hainam@bk.edu.vn", passwordHash: pass, isAdmin: false } }),
-    admin: await prisma.user.upsert({ where: { email: "admin@labshare.vn" }, update: {}, create: { name: "LabShare Admin", email: "admin@labshare.vn", passwordHash: pass, isAdmin: true } }),
+    minhquan: await prisma.user.upsert({ where: { email: "minhquan@bk.edu.vn" }, update: {}, create: { name: "Minh Quân (K67)", studentId: "2023A001", email: "minhquan@bk.edu.vn", phone: "091 123 4567", passwordHash: pass, isAdmin: false } }),
+    thutrang: await prisma.user.upsert({ where: { email: "thutrang@bk.edu.vn" }, update: {}, create: { name: "Thu Trang (K65)", studentId: "2021A502", email: "thutrang@bk.edu.vn", phone: "090 234 5678", passwordHash: pass, isAdmin: false } }),
+    ducanh: await prisma.user.upsert({ where: { email: "ducanh@bk.edu.vn" }, update: {}, create: { name: "Đức Anh (K66)", studentId: "2022A310", email: "ducanh@bk.edu.vn", phone: "098 345 6789", passwordHash: pass, isAdmin: false } }),
+    hainam: await prisma.user.upsert({ where: { email: "hainam@bk.edu.vn" }, update: {}, create: { name: "Hải Nam (K66)", studentId: "2022A118", email: "hainam@bk.edu.vn", phone: "097 456 7890", passwordHash: pass, isAdmin: false } }),
+    admin: await prisma.user.upsert({ where: { email: "admin@labshare.vn" }, update: {}, create: { name: "LabShare Admin", email: "admin@labshare.vn", phone: null, passwordHash: pass, isAdmin: true } }),
   };
 
   // Products (senior-owned, active)

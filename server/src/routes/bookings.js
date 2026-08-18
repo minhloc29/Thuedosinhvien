@@ -24,6 +24,8 @@ function toApi(b) {
     deposit: b.deposit,
     insuranceFee: b.insuranceFee,
     total: b.total,
+    contactName: b.contactName,
+    contactPhone: b.contactPhone,
     status: b.status,
     handoverStage: b.handoverAt ? "picked_up" : null,
     handoverAt: b.handoverAt,
@@ -38,7 +40,7 @@ function toApi(b) {
 // (never trust the client for money). Booking starts as "pending".
 router.post("/", async (req, res) => {
   try {
-    const { productId, pickupId, startDate, endDate } = req.body || {};
+    const { productId, pickupId, startDate, endDate, contactName, contactPhone } = req.body || {};
     if (!productId || !pickupId || !startDate || !endDate) {
       return res.status(400).json({ error: "productId, pickupId, startDate, endDate are required" });
     }
@@ -68,6 +70,8 @@ router.post("/", async (req, res) => {
         startDate: start, endDate: end, nights,
         rentalCost, deposit, insuranceFee,
         total: rentalCost + deposit + insuranceFee,
+        contactName: contactName ? String(contactName).trim() : null,
+        contactPhone: contactPhone ? String(contactPhone).trim() : null,
         status: "pending",
       },
       include: { product: { include: { category: true } }, renter: true, pickupPoint: true },

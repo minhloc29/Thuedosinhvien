@@ -23,3 +23,22 @@
 }
 
 input[type=range] { accent-color: #F2A93B; }
+
+/* Landing page responsive — stack multi-column grids on small screens.
+   !important overrides the inline gridTemplateColumns these sections use. */
+.lp-hero  { grid-template-columns: 1.15fr 0.85fr; }
+.lp-grid2 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+.lp-grid3 { grid-template-columns: repeat(3, minmax(0,1fr)); }
+.lp-grid4 { grid-template-columns: repeat(4, minmax(0,1fr)); }
+.lp-radio2 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+.lp-form2 { grid-template-columns: 1fr 1fr; }
+
+@media (max-width: 900px) {
+  .lp-hero { grid-template-columns: 1fr !important; }
+  .lp-grid4 { grid-template-columns: repeat(2, minmax(0,1fr)) !important; }
+}
+@media (max-width: 620px) {
+  .lp-hero, .lp-grid2, .lp-grid3, .lp-grid4, .lp-radio2, .lp-form2 { grid-template-columns: 1fr !important; }
+  .lp-navlink { display: none !important; } /* keep only the CTA button on phones */
+  .lp-hero { padding: 64px 20px 60px !important; }
+}

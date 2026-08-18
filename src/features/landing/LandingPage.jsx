@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { T, F } from "../../theme/tokens";
 import { money } from "../../utils/format";
+import heroBg from "../../assets/hero-bg1.jpg";
 import {
   Search, ShieldCheck, Timer, ArrowRight, MapPin,
   Check, Sparkles, Wallet, Boxes, Microscope, Cpu, CircuitBoard,
@@ -20,9 +21,9 @@ import {
 // --- Featured kits (by need, not by model number) ----------------------
 
 const KITS = [
-  { emoji: "🛠️", name: "Embedded Starter Kit", items: ["STM32 + Debugger + Power Supply"], price: 50000, grad: [T.accentBg, T.tealBg] },
-  { emoji: "📡", name: "IoT Kit", items: ["ESP32 + Sensor + Power Supply + Programmer"], price: 40000, grad: [T.tealBg, T.accentBg] },
-  { emoji: "⚡", name: "Electronics Lab Kit", items: ["Oscilloscope + Function Generator + Power Supply"], price: 80000, grad: [T.accentBg, T.accentBg] },
+  { emoji: "🛠️", name: "Embedded Starter Kit", items: ["STM32 + Debugger + Power Supply"], price: 50000, grad: [T.tealBg, T.tealBg] },
+  { emoji: "📡", name: "IoT Kit", items: ["ESP32 + Sensor + Power Supply + Programmer"], price: 40000, grad: [T.tealBg, T.tealBg] },
+  { emoji: "⚡", name: "Electronics Lab Kit", items: ["Oscilloscope + Function Generator + Power Supply"], price: 80000, grad: [T.tealBg, T.tealBg] },
   { emoji: "🤖", name: "Robotics Kit", items: ["Motor + Driver + MCU + Sensor"], price: 60000, grad: [T.tealBg, T.tealBg] },
 ];
 
@@ -67,7 +68,7 @@ const BUDGETS = ["< 50k/ngày", "50–100k/ngày", "100–200k/ngày", "> 200k/n
 const Section = ({ kicker, title, sub, children, id, max = 1080, center = true }) => (
   <section id={id} style={{ maxWidth: max, margin: "0 auto", padding: "84px 24px 0" }}>
     <div style={{ textAlign: center ? "center" : "left", maxWidth: 560, margin: center ? "0 auto 40px" : "0 0 32px" }}>
-      {kicker && <p style={{ fontFamily: F.mono, fontSize: 12, color: T.accentDeep, letterSpacing: 1.5, textTransform: "uppercase", margin: "0 0 10px" }}>{kicker}</p>}
+      {kicker && <p style={{ fontFamily: F.mono, fontSize: 12, color: T.tealDeep, letterSpacing: 1.5, textTransform: "uppercase", margin: "0 0 10px" }}>{kicker}</p>}
       <h2 style={{ fontFamily: F.display, fontSize: "clamp(26px, 3.4vw, 34px)", fontWeight: 700, color: T.ink, margin: "0 0 12px", letterSpacing: -0.5 }}>{title}</h2>
       {sub && <p style={{ fontFamily: F.body, fontSize: 15, color: T.inkSoft, margin: 0, lineHeight: 1.6 }}>{sub}</p>}
     </div>
@@ -85,11 +86,17 @@ const Chip = ({ children }) => (
 
 // Primary CTA button (solid terracotta) and Ghost (outline).
 const Primary = ({ children, onClick, big, type }) => (
-  <button type={type} onClick={onClick} style={{ padding: big ? "15px 26px" : "12px 20px", borderRadius: 14, background: T.accent, color: "#fff", border: "none", cursor: "pointer", fontFamily: F.display, fontWeight: 700, fontSize: big ? 15.5 : 14, display: "inline-flex", alignItems: "center", gap: 8 }}>{children}</button>
+  <button type={type} onClick={onClick} style={{ padding: big ? "15px 26px" : "12px 20px", borderRadius: 14, background: T.teal, color: "#fff", border: "none", cursor: "pointer", fontFamily: F.display, fontWeight: 700, fontSize: big ? 15.5 : 14, display: "inline-flex", alignItems: "center", gap: 8 }}>{children}</button>
 );
 
 const Ghost = ({ children, onClick, type }) => (
   <button type={type} onClick={onClick} style={{ padding: "12px 20px", borderRadius: 14, border: `1px solid ${T.line}`, background: "transparent", color: T.ink, cursor: "pointer", fontFamily: F.body, fontWeight: 600, fontSize: 14, display: "inline-flex", alignItems: "center", gap: 8 }}>{children}</button>
+);
+
+// Full-width decorative stripe band spanning the whole screen (single color),
+// used as a colorful divider between the white content sections.
+const StripeBand = ({ color = T.teal, height = 44, reverse = false, style = {} }) => (
+  <div aria-hidden style={{ width: "100%", height, background: `repeating-linear-gradient(${reverse ? "-45deg" : "135deg"}, ${color} 0 26px, #FFFFFF 26px 52px)`, opacity: 0.85, ...style }} />
 );
 
 // Small shared styled <select> + <input> + <textarea>.
@@ -106,14 +113,14 @@ const FieldSelect = ({ value, onChange, options }) => (
 const RadioGroup = ({ legend, value, onChange, options }) => (
   <fieldset style={{ border: "none", margin: 0, padding: 0 }}>
     <legend style={{ fontFamily: F.body, fontSize: 12.5, color: T.inkSoft, marginBottom: 10 }}>{legend}</legend>
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8 }}>
+    <div className="lp-radio2" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8 }}>
       {options.map((o) => {
         const on = value === o;
         return (
           <button key={o} type="button" onClick={() => onChange(o)} style={{
             padding: "11px 12px", borderRadius: 11, cursor: "pointer", fontFamily: F.body, fontSize: 13,
-            fontWeight: 600, color: on ? "#fff" : T.inkSoft, background: on ? T.accent : T.bg,
-            border: `1px solid ${on ? T.accent : T.line}`, textAlign: "left",
+            fontWeight: 600, color: on ? "#fff" : T.inkSoft, background: on ? T.teal : T.bg,
+            border: `1px solid ${on ? T.teal : T.line}`, textAlign: "left",
           }}>
             {on ? "● " : "○ "}{o}
           </button>
@@ -159,16 +166,16 @@ export default function LandingPage({ onEnter }) {
       <nav style={{ position: "sticky", top: 0, zIndex: 40, background: "rgba(238,241,246,0.86)", backdropFilter: "blur(10px)", borderBottom: `1px solid ${T.line}` }}>
         <div style={{ maxWidth: 1120, margin: "0 auto", padding: "14px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 9, background: T.accentBg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <CircuitBoard size={17} color={T.accentDeep} />
+            <div style={{ width: 32, height: 32, borderRadius: 9, background: T.tealBg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <CircuitBoard size={17} color={T.tealDeep} />
             </div>
             <span style={{ fontFamily: F.display, fontSize: 17, fontWeight: 700, color: T.ink }}>LabShare</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
-            <a href="#kits" onClick={() => scrollTo("kits")} style={{ fontFamily: F.body, fontSize: 13.5, color: T.inkSoft, textDecoration: "none" }}>Thiết bị</a>
-            <a href="#how" onClick={() => scrollTo("how")} style={{ fontFamily: F.body, fontSize: 13.5, color: T.inkSoft, textDecoration: "none" }}>Cách hoạt động</a>
-            <a href="#register" onClick={() => scrollTo("register")} style={{ fontFamily: F.body, fontSize: 13.5, color: T.inkSoft, textDecoration: "none" }}>Đăng ký</a>
-            <button onClick={onEnter} style={{ padding: "10px 18px", borderRadius: 12, background: T.accent, color: "#fff", border: "none", cursor: "pointer", fontFamily: F.display, fontWeight: 600, fontSize: 13.5, display: "flex", alignItems: "center", gap: 7 }}>
+            <a href="#kits" onClick={() => scrollTo("kits")} className="lp-navlink" style={{ fontFamily: F.body, fontSize: 13.5, color: T.inkSoft, textDecoration: "none" }}>Thiết bị</a>
+            <a href="#how" onClick={() => scrollTo("how")} className="lp-navlink" style={{ fontFamily: F.body, fontSize: 13.5, color: T.inkSoft, textDecoration: "none" }}>Cách hoạt động</a>
+            <a href="#register" onClick={() => scrollTo("register")} className="lp-navlink" style={{ fontFamily: F.body, fontSize: 13.5, color: T.inkSoft, textDecoration: "none" }}>Đăng ký</a>
+            <button onClick={onEnter} style={{ padding: "10px 18px", borderRadius: 12, background: T.teal, color: "#fff", border: "none", cursor: "pointer", fontFamily: F.display, fontWeight: 600, fontSize: 13.5, display: "flex", alignItems: "center", gap: 7, whiteSpace: "nowrap" }}>
               Vào ứng dụng <ArrowRight size={15} />
             </button>
           </div>
@@ -176,16 +183,18 @@ export default function LandingPage({ onEnter }) {
       </nav>
 
       {/* ---------- ① Hero ---------- */}
-      <header style={{ background: "radial-gradient(700px 420px at 80% -10%, rgba(242,169,59,0.14), transparent 60%), radial-gradient(600px 380px at 10% 110%, rgba(42,111,104,0.14), transparent 60%), #EEF1F6", color: T.ink, position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "relative", maxWidth: 1120, margin: "0 auto", padding: "76px 24px 84px", display: "grid", gridTemplateColumns: "1.15fr 0.85fr", gap: 40, alignItems: "center" }}>
+      <header style={{ background: "radial-gradient(700px 420px at 80% -10%, rgba(42,111,104,0.14), transparent 60%), radial-gradient(600px 380px at 10% 110%, rgba(42,111,104,0.14), transparent %), #EEF1F6", color: T.ink, position: "relative", overflow: "hidden" }}>
+        <img src={heroBg} alt="" aria-hidden style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(238,241,246,0.90) 0%, rgba(238,241,246,0.86) 50%, rgba(238,241,246,0.94) 100%)" }} />
+        <div className="lp-hero" style={{ position: "relative", maxWidth: 1120, margin: "0 auto", padding: "76px 24px 84px", display: "grid", gridTemplateColumns: "1.15fr 0.85fr", gap: 40, alignItems: "center" }}>
           <div>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 7, background: T.surface, border: `1px solid ${T.line}`, padding: "7px 14px", borderRadius: 30, marginBottom: 22 }}>
-              <MapPin size={13} color={T.accent} />
+              <MapPin size={13} color={T.teal} />
               <span style={{ fontFamily: F.body, fontSize: 12.5, color: T.inkSoft }}>Hiện thử nghiệm tại <strong style={{ color: T.ink }}>HUST</strong></span>
             </div>
-            <h1 style={{ fontFamily: F.display, fontSize: "clamp(38px, 5.6vw, 58px)", fontWeight: 700, lineHeight: 1.06, margin: "0 0 16px", letterSpacing: -1 }}>
-              Không cần mua thiết bị<br />chỉ để làm một project.<br />
-              <span style={{ color: T.accent }}>Thuê thiết bị STEM theo ngày/tuần.</span>
+            <h1 style={{ fontFamily: F.display, fontSize: "clamp(32px, 8vw, 58px)", fontWeight: 700, lineHeight: 1.06, margin: "0 0 16px", letterSpacing: -1 }}>
+              Không cần mua thiết bị chỉ để làm một project.<br />
+              <span style={{ color: T.teal }}>Thuê thiết bị STEM theo ngày/tuần.</span>
             </h1>
             <p style={{ fontFamily: F.body, fontSize: 17, color: T.inkSoft, maxWidth: 500, margin: "0 0 22px", lineHeight: 1.6 }}>
               Oscilloscope, Power Supply, Arduino, STM32, Raspberry Pi, Logic Analyzer — ngay tại trường, giá minh bạch và được kiểm tra trước khi nhận.
@@ -195,14 +204,14 @@ export default function LandingPage({ onEnter }) {
             </div>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <Primary big onClick={() => scrollTo("kits")}>Tìm thiết bị <ArrowRight size={17} strokeWidth={2.5} /></Primary>
-              <Ghost onClick={() => scrollTo("suggest")}>Tôi có project cần thiết bị <Sparkles size={15} color={T.accent} /></Ghost>
+              <Ghost onClick={() => scrollTo("suggest")}>Tôi có project cần thiết bị <Sparkles size={15} color={T.teal} /></Ghost>
             </div>
           </div>
 
           {/* Hero visual: STEM kit mock card */}
           <div style={{ display: "flex", justifyContent: "flex-end" }}>
             <div style={{ background: T.surface, border: `1px solid ${T.line}`, borderRadius: 20, padding: 22, boxShadow: "0 24px 60px rgba(32,26,21,0.18)", width: "100%", maxWidth: 360 }}>
-              <div style={{ height: 150, borderRadius: 14, background: `linear-gradient(135deg, ${T.accentBg}, ${T.tealBg})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 64, marginBottom: 14 }}>🤖</div>
+              <div style={{ height: 150, borderRadius: 14, background: `linear-gradient(135deg, ${T.tealBg}, ${T.tealBg})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 64, marginBottom: 14 }}>🤖</div>
               <p style={{ fontFamily: F.display, fontSize: 16, fontWeight: 700, margin: "0 0 4px" }}>Robotics Project Kit</p>
               <p style={{ fontFamily: F.body, fontSize: 12, color: T.inkFaint, margin: "0 0 14px", display: "flex", alignItems: "center", gap: 5 }}>
                 <MapPin size={13} /> KTX Bách Khoa · Nhận trong hôm nay
@@ -210,7 +219,7 @@ export default function LandingPage({ onEnter }) {
               <div style={{ display: "flex", gap: 7, marginBottom: 16, flexWrap: "wrap" }}>
                 {[
                   ["Phân hạng A", T.teal],
-                  ["Đã kiểm tra 11/08", T.accentDeep],
+                  ["Đã kiểm tra 11/08", T.tealDeep],
                 ].map(([t, c]) => (
                   <span key={t} style={{ display: "flex", alignItems: "center", gap: 5, fontFamily: F.body, fontSize: 11, color: c, background: T.bg, padding: "5px 9px", borderRadius: 20 }}>
                     <ShieldCheck size={12} strokeWidth={2.2} /> {t}
@@ -221,7 +230,7 @@ export default function LandingPage({ onEnter }) {
                 <span style={{ fontFamily: F.mono, fontSize: 26, fontWeight: 700, color: T.ink }}>{money(60000)}</span>
                 <span style={{ fontFamily: F.body, fontSize: 12, color: T.inkFaint }}>/ ngày · cọc {money(500000)}</span>
               </div>
-              <button onClick={onEnter} style={{ width: "100%", padding: "12px 0", borderRadius: 12, background: T.accent, color: "#fff", border: "none", cursor: "pointer", fontFamily: F.display, fontWeight: 600, fontSize: 13.5, display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>Thuê bộ này <ArrowRight size={15} /></button>
+              <button onClick={onEnter} style={{ width: "100%", padding: "12px 0", borderRadius: 12, background: T.teal, color: "#fff", border: "none", cursor: "pointer", fontFamily: F.display, fontWeight: 600, fontSize: 13.5, display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>Thuê bộ này <ArrowRight size={15} /></button>
             </div>
           </div>
         </div>
@@ -229,13 +238,13 @@ export default function LandingPage({ onEnter }) {
 
       {/* ---------- ② Problem → Solution ---------- */}
       <Section kicker="Vấn đề" title="Bạn đang gặp vấn đề này?" sub="Đừng để việc thiếu thiết bị chặn project của bạn — có cách rẻ hơn nhiều.">
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
+        <div className="lp-grid3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
           {[
             { icon: Wallet, title: "Thiết bị đắt", desc: "Một project chỉ cần dùng vài tuần nhưng phải bỏ hàng triệu đồng để mua." },
             { icon: Timer, title: "Phụ thuộc phòng lab", desc: "Thiết bị có nhưng không phải lúc nào cũng dùng được, khó mang ra ngoài." },
             { icon: Search, title: "Không biết cần mua gì", desc: "Mới làm project, bạn thường không biết chính xác bộ thiết bị nào phù hợp." },
           ].map((p) => (
-            <Card key={p.title}><p.icon size={22} color={T.accentDeep} /><h3 style={{ fontFamily: F.display, fontSize: 17, fontWeight: 700, margin: "12px 0 8px" }}>{p.title}</h3><p style={{ fontFamily: F.body, fontSize: 13.5, color: T.inkSoft, lineHeight: 1.65, margin: 0 }}>{p.desc}</p></Card>
+            <Card key={p.title}><p.icon size={22} color={T.tealDeep} /><h3 style={{ fontFamily: F.display, fontSize: 17, fontWeight: 700, margin: "12px 0 8px" }}>{p.title}</h3><p style={{ fontFamily: F.body, fontSize: 13.5, color: T.inkSoft, lineHeight: 1.65, margin: 0 }}>{p.desc}</p></Card>
           ))}
         </div>
 
@@ -243,7 +252,7 @@ export default function LandingPage({ onEnter }) {
 
         <div style={{ background: T.surface, border: `1px solid ${T.line}`, borderRadius: 20, padding: "34px 28px" }}>
           <p style={{ fontFamily: F.mono, fontSize: 12, color: T.teal, letterSpacing: 1.5, textTransform: "uppercase", margin: "0 0 22px" }}>LabShare giải quyết bằng cách</p>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+          <div className="lp-grid4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
             {[
               { icon: GraduationCap, t: "Chọn project" },
               { icon: CircuitBoard, t: "Nhận bộ thiết bị phù hợp" },
@@ -280,14 +289,14 @@ export default function LandingPage({ onEnter }) {
           {suggested && (
             <div style={{ marginTop: 28, background: T.surface, border: `1px solid ${T.line}`, borderRadius: 20, padding: 28 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-                <Sparkles size={16} color={T.accent} />
+                <Sparkles size={16} color={T.teal} />
                 <h3 style={{ fontFamily: F.display, fontSize: 18, fontWeight: 700, margin: 0 }}>Bộ thiết bị đề xuất cho bạn</h3>
               </div>
               {SUGGESTED.map((s) => (
                 <div key={s.name} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "13px 0", borderTop: `1px solid ${T.line}` }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <div style={{ width: 34, height: 34, borderRadius: 10, background: T.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <s.icon size={16} color={T.accentDeep} />
+                      <s.icon size={16} color={T.tealDeep} />
                     </div>
                     <span style={{ fontFamily: F.body, fontSize: 14, color: T.ink }}>{s.name}</span>
                   </div>
@@ -296,11 +305,11 @@ export default function LandingPage({ onEnter }) {
               ))}
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "15px 0", borderTop: `2px solid ${T.ink}` }}>
                 <span style={{ fontFamily: F.display, fontSize: 15, fontWeight: 700, color: T.ink }}>Tổng</span>
-                <span style={{ fontFamily: F.mono, fontSize: 18, fontWeight: 700, color: T.accent }}>
+                <span style={{ fontFamily: F.mono, fontSize: 18, fontWeight: 700, color: T.teal }}>
                   ~{money(85000)}<span style={{ color: T.inkFaint, fontWeight: 400, fontSize: 13 }}>/ngày</span>
                 </span>
               </div>
-              <button onClick={onEnter} style={{ width: "100%", marginTop: 14, padding: "14px 0", borderRadius: 12, background: T.accent, color: "#fff", border: "none", cursor: "pointer", fontFamily: F.display, fontWeight: 700, fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+              <button onClick={onEnter} style={{ width: "100%", marginTop: 14, padding: "14px 0", borderRadius: 12, background: T.teal, color: "#fff", border: "none", cursor: "pointer", fontFamily: F.display, fontWeight: 700, fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                 Đăng ký thuê bộ này <ArrowRight size={16} />
               </button>
             </div>
@@ -310,13 +319,13 @@ export default function LandingPage({ onEnter }) {
 
       {/* ---------- ④ Featured kits ---------- */}
       <Section id="kits" kicker="Bộ thiết bị phổ biến" title="Các bộ thiết bị phổ biến" sub="Chọn theo nhu cầu của project — không cần biết tên model.">
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
+        <div className="lp-grid4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
           {KITS.map((k) => (
             <div key={k.name} style={{ background: T.surface, border: `1px solid ${T.line}`, borderRadius: 18, padding: 22 }}>
               <div style={{ height: 84, borderRadius: 14, background: `linear-gradient(135deg, ${k.grad[0]}, ${k.grad[1]})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 40, marginBottom: 14 }}>{k.emoji}</div>
               <h3 style={{ fontFamily: F.display, fontSize: 16, fontWeight: 700, margin: "0 0 8px" }}>{k.name}</h3>
               <p style={{ fontFamily: F.body, fontSize: 12.5, color: T.inkSoft, lineHeight: 1.55, margin: "0 0 14px", minHeight: 40 }}>{k.items[0]}</p>
-              <p style={{ fontFamily: F.mono, fontSize: 15, fontWeight: 700, color: T.accent, margin: 0 }}>Từ {money(k.price)}<span style={{ color: T.inkFaint, fontWeight: 400, fontSize: 11 }}>/ngày</span></p>
+              <p style={{ fontFamily: F.mono, fontSize: 15, fontWeight: 700, color: T.teal, margin: 0 }}>Từ {money(k.price)}<span style={{ color: T.inkFaint, fontWeight: 400, fontSize: 11 }}>/ngày</span></p>
             </div>
           ))}
         </div>
@@ -327,10 +336,10 @@ export default function LandingPage({ onEnter }) {
 
       {/* ---------- ⑤ How it works ---------- */}
       <Section id="how" kicker="Cách hoạt động" title="Thuê hoạt động thế nào?" sub="Chỉ 4 bước — từ lúc cần đến lúc trả.">
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
+        <div className="lp-grid4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
           {STEPS.map((s) => (
             <Card key={s.n}>
-              <span style={{ fontFamily: F.display, fontSize: 22, fontWeight: 700, color: T.accent }}>{s.n}</span>
+              <span style={{ fontFamily: F.display, fontSize: 22, fontWeight: 700, color: T.teal }}>{s.n}</span>
               <h3 style={{ fontFamily: F.display, fontSize: 16, fontWeight: 700, margin: "8px 0 6px" }}>{s.title}</h3>
               <p style={{ fontFamily: F.body, fontSize: 13, color: T.inkSoft, lineHeight: 1.6, margin: 0 }}>{s.desc}</p>
             </Card>
@@ -340,7 +349,7 @@ export default function LandingPage({ onEnter }) {
 
       {/* ---------- ⑥ Trust / Quality ---------- */}
       <Section id="trust" kicker="Chất lượng" title="🔒 Mỗi thiết bị đều được kiểm tra trước khi cho thuê" sub="Đây chính là điểm khác biệt so với 'đăng lên Facebook rồi cho mượn'.">
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+        <div className="lp-grid3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
           {TRUST.map((t) => (
             <div key={t} style={{ display: "flex", alignItems: "center", gap: 10, background: T.surface, border: `1px solid ${T.line}`, borderRadius: 14, padding: "16px 18px" }}>
               <div style={{ width: 30, height: 30, borderRadius: "50%", background: T.greenBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -354,7 +363,7 @@ export default function LandingPage({ onEnter }) {
 
       {/* ---------- ⑦ Senior section ---------- */}
       <Section id="senior" kicker="Dành cho người có thiết bị" title="Bạn có thiết bị không còn sử dụng?" sub="Đừng để Arduino, STM32, Raspberry Pi, sensor kit... nằm trong tủ.">
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, alignItems: "center" }}>
+        <div className="lp-grid2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, alignItems: "center" }}>
           <Card style={{ borderLeft: `3px solid ${T.teal}` }}>
             <Boxes size={22} color={T.tealDeep} />
             <h3 style={{ fontFamily: F.display, fontSize: 19, fontWeight: 700, margin: "12px 0 8px" }}>Cho thuê thiết bị → kiếm thêm thu nhập</h3>
@@ -417,7 +426,7 @@ export default function LandingPage({ onEnter }) {
       {/* ---------- ⑨ Final CTA + validation form ---------- */}
       <section id="register" style={{ maxWidth: 1080, margin: "0 auto", padding: "84px 24px" }}>
         <div style={{ background: T.surface, border: `1px solid ${T.line}`, borderRadius: 24, padding: "clamp(32px, 5vw, 56px)", position: "relative", overflow: "hidden" }}>
-          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(600px 300px at 50% 0%, rgba(242,169,59,0.10), transparent 65%)" }} />
+          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(600px 300px at 50% 0%, rgba(42,111,104,0.12), transparent 65%)" }} />
           <div style={{ position: "relative", maxWidth: 520, margin: "0 auto", textAlign: "center" }}>
             <p style={{ fontSize: 34, margin: "0 0 10px" }}>🚀</p>
             <h2 style={{ fontFamily: F.display, fontSize: "clamp(26px, 4vw, 36px)", fontWeight: 700, margin: "0 0 10px", letterSpacing: -0.5 }}>
@@ -441,7 +450,7 @@ export default function LandingPage({ onEnter }) {
           ) : (
             <form onSubmit={handleRegister} style={{ position: "relative", maxWidth: 520, margin: "28px auto 0", display: "flex", flexDirection: "column", gap: 16 }}>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div className="lp-form2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   <label style={{ fontFamily: F.body, fontSize: 12.5, color: T.inkSoft }}>Bạn đang học trường nào?</label>
                   <FieldSelect value={form.school} onChange={set("school")} options={SCHOOLS} />
@@ -465,7 +474,7 @@ export default function LandingPage({ onEnter }) {
               <RadioGroup legend="Thời gian cần" value={form.duration} onChange={(v) => set("duration")(v)} options={DURATIONS} />
               <RadioGroup legend="Mức ngân sách" value={form.budget} onChange={(v) => set("budget")(v)} options={BUDGETS} />
 
-              <button type="submit" style={{ marginTop: 6, padding: "15px 0", borderRadius: 14, background: T.accent, color: "#fff", border: "none", cursor: "pointer", fontFamily: F.display, fontWeight: 700, fontSize: 15.5, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+              <button type="submit" style={{ marginTop: 6, padding: "15px 0", borderRadius: 14, background: T.teal, color: "#fff", border: "none", cursor: "pointer", fontFamily: F.display, fontWeight: 700, fontSize: 15.5, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                 Đăng ký <ArrowRight size={17} strokeWidth={2.5} />
               </button>
             </form>
@@ -477,8 +486,8 @@ export default function LandingPage({ onEnter }) {
       <footer style={{ borderTop: `1px solid ${T.line}`, background: T.surface }}>
         <div style={{ maxWidth: 1120, margin: "0 auto", padding: "34px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-            <div style={{ width: 28, height: 28, borderRadius: 8, background: T.accentBg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <CircuitBoard size={15} color={T.accentDeep} />
+            <div style={{ width: 28, height: 28, borderRadius: 8, background: T.tealBg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <CircuitBoard size={15} color={T.tealDeep} />
             </div>
             <span style={{ fontFamily: F.display, fontSize: 15, fontWeight: 700, color: T.ink }}>LabShare</span>
           </div>
