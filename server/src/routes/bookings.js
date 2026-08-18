@@ -13,7 +13,7 @@ export const depositFor = (product) => Math.round(product.marketValue * DEPOSIT_
 function toApi(b) {
   return {
     id: b.id,
-    product: b.product ? { id: b.product.id, sealCode: b.product.sealCode, name: b.product.name, emoji: b.product.category?.emoji, pricePerDay: b.product.pricePerDay, splitSeniorPct: b.product.splitSeniorPct, splitPlatformPct: b.product.splitPlatformPct } : null,
+    product: b.product ? { id: b.product.id, sealCode: b.product.sealCode, name: b.product.name, emoji: b.product.category?.emoji, image: b.product.image, pricePerDay: b.product.pricePerDay, splitSeniorPct: b.product.splitSeniorPct, splitPlatformPct: b.product.splitPlatformPct } : null,
     renterName: b.renter?.name,
     pickupId: b.pickupPointId,
     pickupName: b.pickupPoint?.name,

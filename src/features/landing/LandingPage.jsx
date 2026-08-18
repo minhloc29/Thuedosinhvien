@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { T, F } from "../../theme/tokens";
 import { money } from "../../utils/format";
 import heroBg from "../../assets/hero-bg1.jpg";
@@ -19,13 +19,9 @@ import {
 // =====================================================================
 
 // --- Featured kits (by need, not by model number) ----------------------
-
-const KITS = [
-  { emoji: "🛠️", name: "Embedded Starter Kit", items: ["STM32 + Debugger + Power Supply"], price: 50000, grad: [T.tealBg, T.tealBg] },
-  { emoji: "📡", name: "IoT Kit", items: ["ESP32 + Sensor + Power Supply + Programmer"], price: 40000, grad: [T.tealBg, T.tealBg] },
-  { emoji: "⚡", name: "Electronics Lab Kit", items: ["Oscilloscope + Function Generator + Power Supply"], price: 80000, grad: [T.tealBg, T.tealBg] },
-  { emoji: "🤖", name: "Robotics Kit", items: ["Motor + Driver + MCU + Sensor"], price: 60000, grad: [T.tealBg, T.tealBg] },
-];
+// Replaced by a live fetch of the real product catalog (section ④). KITS was
+// mock bundles with emoji icons; per user direction we now show real devices
+// with real photos — falling back to an empty image slot, never an icon.
 
 // --- Suggested kit (the "AI" result, shown after describing a project) --
 
@@ -135,6 +131,19 @@ const RadioGroup = ({ legend, value, onChange, options }) => (
 // =====================================================================
 
 export default function LandingPage({ onEnter }) {
+  // Real product catalog — fetched from the app API so the "popular devices"
+  // section shows genuine items with real photos, not mock kits.
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/products")
+      .then((r) => r.ok ? r.json() : Promise.reject(new Error("catalog fetch failed")))
+      .then(({ products }) => { if (alive && Array.isArray(products)) setProducts(products); })
+      .catch(() => { /* leave empty — section just renders no cards */ });
+    return () => { alive = false; };
+  }, []);
+
   // AI suggest section state
   const [desc, setDesc] = useState("");
   const [suggested, setSuggested] = useState(false);
@@ -186,7 +195,7 @@ export default function LandingPage({ onEnter }) {
       <header style={{ background: "radial-gradient(700px 420px at 80% -10%, rgba(42,111,104,0.14), transparent 60%), radial-gradient(600px 380px at 10% 110%, rgba(42,111,104,0.14), transparent %), #EEF1F6", color: T.ink, position: "relative", overflow: "hidden" }}>
         <img src={heroBg} alt="" aria-hidden style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(238,241,246,0.90) 0%, rgba(238,241,246,0.86) 50%, rgba(238,241,246,0.94) 100%)" }} />
-        <div className="lp-hero" style={{ position: "relative", maxWidth: 1120, margin: "0 auto", padding: "76px 24px 84px", display: "grid", gridTemplateColumns: "1.15fr 0.85fr", gap: 40, alignItems: "center" }}>
+        <div className="lp-hero" style={{ position: "relative", maxWidth: 1120, margin: "0 auto", padding: "76px 24px 84px", display: "grid", gridTemplateColumns: "1fr", gap: 40, alignItems: "start" }}>
           <div>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 7, background: T.surface, border: `1px solid ${T.line}`, padding: "7px 14px", borderRadius: 30, marginBottom: 22 }}>
               <MapPin size={13} color={T.teal} />
@@ -205,32 +214,6 @@ export default function LandingPage({ onEnter }) {
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <Primary big onClick={() => scrollTo("kits")}>Tìm thiết bị <ArrowRight size={17} strokeWidth={2.5} /></Primary>
               <Ghost onClick={() => scrollTo("suggest")}>Tôi có project cần thiết bị <Sparkles size={15} color={T.teal} /></Ghost>
-            </div>
-          </div>
-
-          {/* Hero visual: STEM kit mock card */}
-          <div style={{ display: "flex", justifyContent: "flex-end" }}>
-            <div style={{ background: T.surface, border: `1px solid ${T.line}`, borderRadius: 20, padding: 22, boxShadow: "0 24px 60px rgba(32,26,21,0.18)", width: "100%", maxWidth: 360 }}>
-              <div style={{ height: 150, borderRadius: 14, background: `linear-gradient(135deg, ${T.tealBg}, ${T.tealBg})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 64, marginBottom: 14 }}>🤖</div>
-              <p style={{ fontFamily: F.display, fontSize: 16, fontWeight: 700, margin: "0 0 4px" }}>Robotics Project Kit</p>
-              <p style={{ fontFamily: F.body, fontSize: 12, color: T.inkFaint, margin: "0 0 14px", display: "flex", alignItems: "center", gap: 5 }}>
-                <MapPin size={13} /> KTX Bách Khoa · Nhận trong hôm nay
-              </p>
-              <div style={{ display: "flex", gap: 7, marginBottom: 16, flexWrap: "wrap" }}>
-                {[
-                  ["Phân hạng A", T.teal],
-                  ["Đã kiểm tra 11/08", T.tealDeep],
-                ].map(([t, c]) => (
-                  <span key={t} style={{ display: "flex", alignItems: "center", gap: 5, fontFamily: F.body, fontSize: 11, color: c, background: T.bg, padding: "5px 9px", borderRadius: 20 }}>
-                    <ShieldCheck size={12} strokeWidth={2.2} /> {t}
-                  </span>
-                ))}
-              </div>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 5, marginBottom: 14 }}>
-                <span style={{ fontFamily: F.mono, fontSize: 26, fontWeight: 700, color: T.ink }}>{money(60000)}</span>
-                <span style={{ fontFamily: F.body, fontSize: 12, color: T.inkFaint }}>/ ngày · cọc {money(500000)}</span>
-              </div>
-              <button onClick={onEnter} style={{ width: "100%", padding: "12px 0", borderRadius: 12, background: T.teal, color: "#fff", border: "none", cursor: "pointer", fontFamily: F.display, fontWeight: 600, fontSize: 13.5, display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>Thuê bộ này <ArrowRight size={15} /></button>
             </div>
           </div>
         </div>
@@ -317,18 +300,24 @@ export default function LandingPage({ onEnter }) {
         </div>
       </Section>
 
-      {/* ---------- ④ Featured kits ---------- */}
-      <Section id="kits" kicker="Bộ thiết bị phổ biến" title="Các bộ thiết bị phổ biến" sub="Chọn theo nhu cầu của project — không cần biết tên model.">
-        <div className="lp-grid4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
-          {KITS.map((k) => (
-            <div key={k.name} style={{ background: T.surface, border: `1px solid ${T.line}`, borderRadius: 18, padding: 22 }}>
-              <div style={{ height: 84, borderRadius: 14, background: `linear-gradient(135deg, ${k.grad[0]}, ${k.grad[1]})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 40, marginBottom: 14 }}>{k.emoji}</div>
-              <h3 style={{ fontFamily: F.display, fontSize: 16, fontWeight: 700, margin: "0 0 8px" }}>{k.name}</h3>
-              <p style={{ fontFamily: F.body, fontSize: 12.5, color: T.inkSoft, lineHeight: 1.55, margin: "0 0 14px", minHeight: 40 }}>{k.items[0]}</p>
-              <p style={{ fontFamily: F.mono, fontSize: 15, fontWeight: 700, color: T.teal, margin: 0 }}>Từ {money(k.price)}<span style={{ color: T.inkFaint, fontWeight: 400, fontSize: 11 }}>/ngày</span></p>
-            </div>
-          ))}
-        </div>
+      {/* ---------- ④ Featured devices (real catalog) ---------- */}
+      <Section id="kits" kicker="Thiết bị phổ biến" title="Các thiết bị phổ biến" sub="Chọn theo nhu cầu của project — không cần biết tên model.">
+        {products.length > 0 && (
+          <div className="lp-grid4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
+            {products.slice(0, 4).map((p) => (
+              <div key={p.id} style={{ background: T.surface, border: `1px solid ${T.line}`, borderRadius: 18, padding: 22 }}>
+                <div style={{ height: 100, borderRadius: 14, background: T.bg, marginBottom: 14, overflow: "hidden" }}>
+                  {p.image ? (
+                    <img src={p.image} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                  ) : null}
+                </div>
+                <h3 style={{ fontFamily: F.display, fontSize: 15, fontWeight: 700, margin: "0 0 6px" }}>{p.name}</h3>
+                <p style={{ fontFamily: F.body, fontSize: 12, color: T.inkSoft, lineHeight: 1.5, margin: "0 0 12px" }}>{p.categoryLabel}</p>
+                <p style={{ fontFamily: F.mono, fontSize: 15, fontWeight: 700, color: T.teal, margin: 0 }}>{money(p.price)}<span style={{ color: T.inkFaint, fontWeight: 400, fontSize: 11 }}>/ngày</span></p>
+              </div>
+            ))}
+          </div>
+        )}
         <div style={{ textAlign: "center", marginTop: 24 }}>
           <Ghost onClick={onEnter}>Xem tất cả thiết bị <ArrowRight size={15} /></Ghost>
         </div>

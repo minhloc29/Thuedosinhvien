@@ -33,7 +33,7 @@ const PICKUP_POINTS = [
 // SEED_PRODUCTS arrays so the API returns the same rich shape the UI already renders.
 const SEED_PRODUCTS = [
   {
-    name: "Oscilloscope Rigol DS1102Z-E", categoryId: "do-luong", pricePerDay: 90000, marketValue: 9000000, grade: "A", sealCode: "LS-0198", splitSeniorPct: 60, seniorKey: "ducanh",
+    name: "Oscilloscope Rigol DS1102Z-E", categoryId: "do-luong", pricePerDay: 90000, marketValue: 9000000, grade: "A", sealCode: "LS-0198", splitSeniorPct: 60, seniorKey: "ducanh", image: "/images/products/oscilloscope.jpg",
     rating: 4.9, rentedCount: 18, earnedSoFar: 540000,
     desc: "Máy hiện sóng số 2 kênh 100MHz, đã hiệu chuẩn, dùng tốt cho project đo đạc mạch điện tử.",
     specs: [
@@ -48,7 +48,7 @@ const SEED_PRODUCTS = [
     unavailableDays: ["2026-08-20", "2026-08-21"],
   },
   {
-    name: "Function Generator FY6900", categoryId: "do-luong", pricePerDay: 60000, marketValue: 3500000, grade: "A", sealCode: "LS-0201", splitSeniorPct: 60, seniorKey: "ducanh",
+    name: "Function Generator FY6900", categoryId: "do-luong", pricePerDay: 60000, marketValue: 3500000, grade: "A", sealCode: "LS-0201", splitSeniorPct: 60, seniorKey: "ducanh", image: "/images/products/function-gen.jpg",
     rating: 4.8, rentedCount: 12, earnedSoFar: 360000,
     desc: "Máy phát hàm 2 kênh 60MHz, sinh sin/vuông/tam giác — ghép với oscilloscope để build project đo đạc.",
     specs: [{ label: "Tần số tối đa", value: "60 MHz" }, { label: "Số kênh", value: "2 kênh" }, { label: "Dạng sóng", value: "Sin / Square / Triangle" }, { label: "Tình trạng", value: "Đã kiểm tra khi thẩm định" }],
@@ -57,7 +57,7 @@ const SEED_PRODUCTS = [
     unavailableDays: [],
   },
   {
-    name: "Nguồn tổ ong DC 30V/5A", categoryId: "do-luong", pricePerDay: 35000, marketValue: 1200000, grade: "B", sealCode: "LS-0155", splitSeniorPct: 50, seniorKey: "thutrang",
+    name: "Nguồn tổ ong DC 30V/5A", categoryId: "do-luong", pricePerDay: 35000, marketValue: 1200000, grade: "B", sealCode: "LS-0155", splitSeniorPct: 50, seniorKey: "thutrang", image: "/images/products/power-supply.jpg",
     rating: 4.7, rentedCount: 22, earnedSoFar: 385000,
     desc: "Nguồn một chiều điều chỉnh 0–30V / 5A, hiển thị số, dùng để cấp nguồn cho mạch khi test.",
     specs: [{ label: "Điện áp", value: "0–30V" }, { label: "Dòng", value: "0–5A" }, { label: "Hiển thị", value: "LED số 2 line" }, { label: "Tình trạng", value: "Đã kiểm tra khi thẩm định" }],
@@ -66,7 +66,7 @@ const SEED_PRODUCTS = [
     unavailableDays: [],
   },
   {
-    name: "Kit Arduino Uno R3 + 10 cảm biến", categoryId: "vi-dieu-khien", pricePerDay: 25000, marketValue: 650000, grade: "A", sealCode: "LS-0212", splitSeniorPct: 60, seniorKey: "minhquan",
+    name: "Kit Arduino Uno R3 + 10 cảm biến", categoryId: "vi-dieu-khien", pricePerDay: 25000, marketValue: 650000, grade: "A", sealCode: "LS-0212", splitSeniorPct: 60, seniorKey: "minhquan", image: "/images/products/arduino.jpg",
     rating: 4.9, rentedCount: 35, earnedSoFar: 437000,
     desc: "Board Arduino Uno R3 chính hãng kèm 10 cảm biến thông dụng (DHT11, siêu âm, LDR, …) — đủ cho project IoT nhập môn.",
     specs: [{ label: "Vi điều khiển", value: "ATmega328P" }, { label: "Cảm biến kèm", value: "10 loại" }, { label: "Tình trạng", value: "Đã kiểm tra khi thẩm định" }],
@@ -75,7 +75,7 @@ const SEED_PRODUCTS = [
     unavailableDays: [],
   },
   {
-    name: "Kit STM32F103C8T6 (Blue Pill)", categoryId: "vi-dieu-khien", pricePerDay: 20000, marketValue: 450000, grade: "B", sealCode: "LS-0225", splitSeniorPct: 50, seniorKey: "minhquan",
+    name: "Kit STM32F103C8T6 (Blue Pill)", categoryId: "vi-dieu-khien", pricePerDay: 20000, marketValue: 450000, grade: "B", sealCode: "LS-0225", splitSeniorPct: 50, seniorKey: "minhquan", image: "/images/products/stm32.jpg",
     rating: 4.7, rentedCount: 20, earnedSoFar: 200000,
     desc: "Board Blue Pill STM32F103C8T6, lập trình bằng Arduino IDE, đủ tài nguyên cho project nhúng nâng cao.",
     specs: [{ label: "Vi điều khiển", value: "STM32F103C8T6" }, { label: "Tần số", value: "72 MHz" }, { label: "Tình trạng", value: "Đã kiểm tra khi thẩm định" }],
@@ -84,7 +84,7 @@ const SEED_PRODUCTS = [
     unavailableDays: [],
   },
   {
-    name: "Raspberry Pi 4 Model B (4GB)", categoryId: "vi-dieu-khien", pricePerDay: 40000, marketValue: 1800000, grade: "A", sealCode: "LS-0219", splitSeniorPct: 60, seniorKey: "thutrang",
+    name: "Raspberry Pi 4 Model B (4GB)", categoryId: "vi-dieu-khien", pricePerDay: 40000, marketValue: 1800000, grade: "A", sealCode: "LS-0219", splitSeniorPct: 60, seniorKey: "thutrang", image: "/images/products/raspberrypi.jpg",
     rating: 4.8, rentedCount: 15, earnedSoFar: 300000,
     desc: "Raspberry Pi 4 4GB chạy ổn định, kèm nguồn + thẻ nhớ đã cài hệ điều hành — cho project IoT/machine learning edge.",
     specs: [{ label: "CPU", value: "BCM2711 4 nhân" }, { label: "RAM", value: "4 GB" }, { label: "Tình trạng", value: "Đã kiểm tra khi thẩm định" }],
@@ -93,7 +93,7 @@ const SEED_PRODUCTS = [
     unavailableDays: ["2026-08-22"],
   },
   {
-    name: "Kit PLC Mini Siemens LOGO!", categoryId: "plc", pricePerDay: 70000, marketValue: 4500000, grade: "A", sealCode: "LS-0233", splitSeniorPct: 60, seniorKey: "ducanh",
+    name: "Kit PLC Mini Siemens LOGO!", categoryId: "plc", pricePerDay: 70000, marketValue: 4500000, grade: "A", sealCode: "LS-0233", splitSeniorPct: 60, seniorKey: "ducanh", image: "/images/products/plc.jpg",
     rating: 4.9, rentedCount: 8, earnedSoFar: 280000,
     desc: "PLC Siemens LOGO! 8DI/4DO, kèm cáp lập trình + mô phỏng — cho project tự động hoá mini.",
     specs: [{ label: "Hãng", value: "Siemens" }, { label: "Ngõ vào/ra", value: "8DI / 4DO" }, { label: "Tình trạng", value: "Đã kiểm tra khi thẩm định" }],
@@ -102,7 +102,7 @@ const SEED_PRODUCTS = [
     unavailableDays: [],
   },
   {
-    name: "Logic Analyzer 8-channel USB", categoryId: "do-luong", pricePerDay: 30000, marketValue: 550000, grade: "B", sealCode: "LS-0207", splitSeniorPct: 50, seniorKey: "thutrang",
+    name: "Logic Analyzer 8-channel USB", categoryId: "do-luong", pricePerDay: 30000, marketValue: 550000, grade: "B", sealCode: "LS-0207", splitSeniorPct: 50, seniorKey: "thutrang", image: "/images/products/logic-analyzer.jpg",
     rating: 4.6, rentedCount: 14, earnedSoFar: 210000,
     desc: "Logic analyzer 8 kênh USB, phần mềm Saleae — bắt tín hiệu nối tiếp UART/I2C/SPI khi debug firmware.",
     specs: [{ label: "Số kênh", value: "8" }, { label: "Kết nối", value: "USB (Saleae)" }, { label: "Tình trạng", value: "Đã kiểm tra khi thẩm định" }],
@@ -144,12 +144,13 @@ async function main() {
     const senior = users[p.seniorKey];
     await prisma.product.upsert({
       where: { sealCode: p.sealCode },
-      update: {},
+      update: { image: p.image },
       create: {
         name: p.name, categoryId: p.categoryId, pricePerDay: p.pricePerDay, marketValue: p.marketValue,
         grade: p.grade, sealCode: p.sealCode, seniorId: senior.id, splitSeniorPct: p.splitSeniorPct,
         splitPlatformPct: 100 - p.splitSeniorPct, rating: p.rating ?? 4.8, rentedCount: p.rentedCount ?? 0,
         earnedSoFar: p.earnedSoFar ?? 0, desc: p.desc,
+        image: p.image,
         specs: JSON.stringify(p.specs), included: JSON.stringify(p.included),
         notIncluded: JSON.stringify(p.notIncluded), unavailableDays: JSON.stringify(p.unavailableDays ?? []),
         appraisedAt: d("2026-08-05"), lastTestedAt: d("2026-08-12"),

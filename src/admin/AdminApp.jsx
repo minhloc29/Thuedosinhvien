@@ -195,7 +195,9 @@ function RentalRequestsScreen({ bookings, onRespond }) {
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {pending.map((b) => (
             <Card key={b.id} style={{ padding: 16, display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-              <div style={{ fontSize: 28 }}>{b.product?.emoji || "📦"}</div>
+              <div style={{ width: 56, height: 44, borderRadius: 8, overflow: "hidden", background: T.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28 }}>
+                {b.product?.image ? <img src={b.product.image} alt={b.product.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : (b.product?.emoji || "📦")}
+              </div>
               <div style={{ flex: 1, minWidth: 180 }}>
                 <p style={{ fontFamily: F.display, fontWeight: 600, fontSize: 14, color: T.ink, margin: 0 }}>{b.product?.name || "Thiết bị"}</p>
                 <p style={{ fontFamily: F.body, fontSize: 12, color: T.inkFaint, margin: "3px 0 0" }}>Từ {b.renterName}{b.contactPhone ? ` · ${b.contactName || ""} ${b.contactPhone}`.trim() : ""}</p>

@@ -12,6 +12,7 @@ function toApi(product) {
     category: product.categoryId,
     categoryLabel: product.category?.label,
     emoji: product.category?.emoji,
+    image: product.image,
     price: product.pricePerDay,
     marketValue: product.marketValue,
     grade: product.grade,

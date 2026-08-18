@@ -74,6 +74,7 @@ model Product {
   specs            String                  // JSON string [{label, value}]
   included         String                  // JSON string string[]
   notIncluded      String                  // JSON string string[]
+  image            String?
   seniorId         String
   senior           User     @relation("SeniorProducts", fields: [seniorId], references: [id])
   splitSeniorPct   Int                     // e.g. 60

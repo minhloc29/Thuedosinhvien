@@ -470,7 +470,11 @@ function ProductGridCard({ p, onClick, compareChecked, onToggleCompare }) {
         }}>
           {compareChecked ? <Check size={13} color="#fff" /> : <Scale size={12} color={T.inkFaint} />}
         </button>
-        {p.emoji}
+        {p.image ? (
+          <img src={p.image} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0 }} />
+        ) : (
+          p.emoji
+        )}
       </div>
       <div style={{ padding: "13px 14px 14px", borderTop: `1px dashed ${T.line}` }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 6 }}>
@@ -599,7 +603,9 @@ function CompareModal({ products, onClose, onOpenDetail }) {
         <div />
         {products.map((p) => (
           <div key={p.id} style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 28 }}>{p.emoji}</div>
+            <div style={{ height: 80, borderRadius: 10, overflow: "hidden", background: T.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28 }}>
+              {p.image ? <img src={p.image} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : p.emoji}
+            </div>
             <p style={{ fontFamily: F.display, fontSize: 12, fontWeight: 600, color: T.ink, margin: "6px 0 0" }}>{p.name}</p>
           </div>
         ))}
@@ -835,7 +841,11 @@ function DetailScreen({ product, onConfirm }) {
       <div>
         <div style={{ height: 200, borderRadius: 18, background: T.surface, border: `1px solid ${T.line}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 76, marginBottom: 18, position: "relative" }}>
           <MatchBadge badge={badge} />
-          {product.emoji}
+          {product.image ? (
+            <img src={product.image} alt={product.name} style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0, borderRadius: 18 }} />
+          ) : (
+            product.emoji
+          )}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
           <span style={{ fontFamily: F.body, fontSize: 10.5, fontWeight: 600, color: T.inkSoft, background: T.surface, border: `1px solid ${T.line}`, padding: "3px 9px", borderRadius: 20 }}>{catInfo(product.category).label}</span>
@@ -984,7 +994,9 @@ function MyRentalsScreen({ bookings, catalog, onOpenQR, onOpenReturn }) {
             return (
               <Card key={b.id} style={{ padding: 16 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                  <div style={{ fontSize: 28 }}>{product.emoji}</div>
+                  <div style={{ height: 52, width: 68, borderRadius: 10, overflow: "hidden", background: T.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28 }}>
+                    {product.image ? <img src={product.image} alt={product.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : product.emoji}
+                  </div>
                   <StatusBadge status={b.status === "confirmed" && b.handoverStage === "picked_up" ? "picked_up" : b.status} />
                 </div>
                 <p style={{ fontFamily: F.display, fontWeight: 600, fontSize: 14, color: T.ink, margin: "10px 0 0" }}>{product.name}</p>
