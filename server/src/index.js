@@ -51,9 +51,17 @@ app.use("/api/bookings", bookingsRouter);
 // Render Web Service hosts both the UI and the API on one origin.
 if (hasBuild) {
   app.use(express.static(dist));
-  // SPA fallback: any non-API, non-asset path (deep links, /admin.html handled
-  // by express.static, and "/") resolves to the user app HTML.
-  app.get(/^\/(?!api\/|auth\/|assets\/).*/, (req, res) => {
+
+  // Admin SPA at /admin and any /admin/* deep path → the admin HTML entry.
+  // Must come before the user SPA fallback (and be excluded from it) so deep
+  // admin links never resolve to the user index.html.
+  app.get(/^\/admin(?:\/.*)?$/, (_req, res) => {
+    res.sendFile(path.join(dist, "admin.html"));
+  });
+
+  // User SPA fallback: any non-API, non-asset, non-admin path resolves to the
+  // user app HTML (deep links, "/", etc.).
+  app.get(/^\/(?!api\/|auth\/|assets\/|admin(?:\/|$)).*/, (req, res) => {
     res.sendFile(path.join(dist, "index.html"));
   });
 }

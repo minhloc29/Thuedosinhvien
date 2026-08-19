@@ -271,6 +271,107 @@ router.get("/ledger", async (req, res) => {
   }
 });
 
+// GET /api/admin/inventory — aggregate data powering the admin dashboard:
+// cards (totals), per-category + per-status charts, products table, inventory
+// summary, and the two tree views. Computed in JS (rows are few).
+router.get("/inventory", async (_req, res) => {
+  try {
+    const [products, ledgers] = await Promise.all([
+      prisma.product.findMany({
+        include: { category: true, location: true },
+        orderBy: { name: "asc" },
+      }),
+      prisma.ledgerEntry.findMany({ where: { type: "rental_revenue" } }),
+    ]);
+
+    const statusOrder = ["available", "sold", "reserve", "returning"];
+    const byStatus = { available: 0, sold: 0, reserve: 0, returning: 0 };
+
+    const byCategory = {};
+    const catOrder = [];
+    const locMap = {};
+
+    products.forEach((p) => {
+      byStatus[p.inventoryStatus] = (byStatus[p.inventoryStatus] || 0) + 1;
+
+      const catId = p.categoryId;
+      if (!(catId in byCategory)) {
+        byCategory[catId] = { category: catId, label: p.category?.label, emoji: p.category?.emoji, quantity: 0 };
+        catOrder.push(catId);
+      }
+      byCategory[catId].quantity += p.quantity;
+
+      const locId = p.locationId;
+      if (locId) {
+        locMap[locId] = locMap[locId] || { id: locId, name: p.location?.name || locId, categoryId: catId, quantity: 0, products: {} };
+        const loc = locMap[locId];
+        loc.quantity += p.quantity;
+        loc.products[p.name] = (loc.products[p.name] || 0) + p.quantity;
+      }
+    });
+
+    // Build the Category → Location → products tree.
+    const locationTree = catOrder.map((catId) => {
+      const cat = byCategory[catId];
+      const locs = Object.values(locMap).filter((l) => l.categoryId === catId).map((l) => ({
+        name: l.name,
+        quantity: l.quantity,
+        products: Object.entries(l.products).map(([name, quantity]) => ({ name, quantity })),
+      }));
+      return { category: cat.category, label: cat.label, emoji: cat.emoji, locations: locs };
+    }).filter((c) => c.locations.length > 0);
+
+    // Totals.
+    const totalProducts = products.length;
+    const productsSold = products.filter((p) => p.inventoryStatus === "sold").length;
+    const productsRemaining = totalProducts - productsSold;
+    const inventoryQty = products.filter((p) => p.inventoryStatus === "available").reduce((s, p) => s + p.quantity, 0);
+    const totalValue = products.filter((p) => p.inventoryStatus !== "sold").reduce((s, p) => s + p.quantity * p.priceNew, 0);
+    const totalRevenue = ledgers.reduce((s, l) => s + l.amount, 0);
+
+    // Revenue grouped by month (YYYY-MM).
+    const byMonth = {};
+    ledgers.forEach((l) => {
+      const m = l.createdAt.toISOString().slice(0, 7);
+      byMonth[m] = (byMonth[m] || 0) + l.amount;
+    });
+    const revenueByMonth = Object.entries(byMonth)
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([month, amount]) => ({
+        month,
+        label: month.slice(5) + "/" + month.slice(0, 4),
+        amount,
+      }));
+
+    return res.json({
+      totals: { totalProducts, productsSold, productsRemaining, inventoryQty, totalValue, totalRevenue },
+      byCategory: catOrder.map((id) => byCategory[id]),
+      byStatus: Object.fromEntries(statusOrder.map((s) => [s, byStatus[s] || 0])),
+      revenueByMonth,
+      products: products.map((p) => ({
+        id: p.id,
+        name: p.name,
+        category: p.categoryId,
+        categoryLabel: p.category?.label,
+        emoji: p.category?.emoji,
+        sealCode: p.sealCode,
+        grade: p.grade,
+        marketValue: p.marketValue,
+        priceNew: p.priceNew,
+        priceConsignment: p.priceConsignment,
+        quantity: p.quantity,
+        status: p.inventoryStatus,
+        locationId: p.locationId,
+        location: p.location?.name || null,
+      })),
+      locationTree,
+    });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ error: "Internal error" });
+  }
+});
+
 // GET /api/admin/stats — aggregated numbers for the overview dashboard.
 // All figures computed from the ledger where possible:
 //   realizedRevenue = Σ rental_revenue;  insuranceFund = Σ insurance_fee

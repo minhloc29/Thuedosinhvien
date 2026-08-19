@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import {
   X, Check, ClipboardCheck, Package, BarChart3, User, ShieldCheck,
-  Tag, Wallet, ArrowRight
+  Tag, Wallet, LayoutDashboard, ArrowRight
 } from "../lib/icons";
 import {
   T, F, GLOBAL_CSS, CATS, catInfo, money,
@@ -9,6 +9,7 @@ import {
   INSURANCE_FEE, PICKUP_POINTS,
   fieldStyle, labelStyle, StatusBadge, GradeBadge, Card, PrimaryButton, SecondaryButton, PageHeader, Modal,
 } from "../lib/shared.jsx";
+import DashboardScreen from "./DashboardScreen";
 
 // --- fallback seed (used only when the API is unreachable) -----------------
 const seedConsignments = [
@@ -334,6 +335,7 @@ function AdminProfileScreen({ onLogout }) {
 // ---------------------------------------------------------------------------
 function AdminSidebar({ screen, setScreen, pendingCount, appraisalCount }) {
   const items = [
+    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "appraisalQueue", label: "Chờ thẩm định", icon: ClipboardCheck, badge: appraisalCount },
     { id: "rentalRequests", label: "Đơn thuê chờ duyệt", icon: Package, badge: pendingCount },
     { id: "overview", label: "Tổng quan vận hành", icon: BarChart3 },
@@ -374,7 +376,7 @@ function AdminSidebar({ screen, setScreen, pendingCount, appraisalCount }) {
 // App
 // ---------------------------------------------------------------------------
 export default function AdminApp() {
-  const [screen, setScreen] = useState("appraisalQueue");
+  const [screen, setScreen] = useState("dashboard");
   const [authStatus, setAuthStatus] = useState(() => (SESSION_TOKEN ? "loading" : "out"));
   const [denied, setDenied] = useState(false);
 
@@ -432,7 +434,9 @@ export default function AdminApp() {
   const appraisalCount = consignments.filter((c) => c.status === "pending").length;
 
   let body;
-  if (screen === "appraisalQueue") {
+  if (screen === "dashboard") {
+    body = <DashboardScreen />;
+  } else if (screen === "appraisalQueue") {
     body = <AppraisalQueueScreen items={consignments.filter((c) => c.status === "pending")} onSelect={setAppraisalItem} />;
   } else if (screen === "rentalRequests") {
     body = <RentalRequestsScreen bookings={bookings} onRespond={respondRentalRequest} />;

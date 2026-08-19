@@ -111,28 +111,30 @@ const apiAdmin = api;
 // ---------------------------------------------------------------------------
 const SEED_PRODUCTS = [
   {
-    id: "p1", name: "Oscilloscope Rigol DS1102Z-E", category: "do-luong", price: 90000,
-    marketValue: 9000000, grade: "A", seniorName: "Đức Anh (K66)", rating: 4.9, rentedCount: 14,
-    sealCode: "LS-0198", appraisedDate: "02/08/2026", lastTestedDate: "12/08/2026",
-    desc: "Oscilloscope 2 kênh 100MHz, phù hợp đo tín hiệu số/analog cho đồ án và bài lab Điện tử.",
+    id: "p1", name: "Oscilloscope Hantek 6022BE", category: "do-luong", price: 30000,
+    marketValue: 1500000, grade: "A", seniorName: "Đức Anh (K66)", rating: 4.8, rentedCount: 6,
+    sealCode: "LS-0251", appraisedDate: "05/08/2026", lastTestedDate: "12/08/2026",
+    priceNew: 1500000, priceConsignment: 1000000, quantity: 2, inventoryStatus: "available",
+    desc: "Máy hiện sóng Hantek 6022BE 2 kênh 20MHz qua USB — ghép laptop để đo mạch khi không cần máy hiện sóng đứng riêng.",
     specs: [
-      { label: "Dải tần", value: "100MHz" }, { label: "Số kênh", value: "2 kênh" },
-      { label: "Màn hình", value: "Hoạt động tốt, không sọc" }, { label: "Vỏ máy", value: "Trầy nhẹ ở góc" },
+      { label: "Băng thông", value: "20MHz" }, { label: "Số kênh", value: "2 kênh" },
+      { label: "Kết nối", value: "USB (phần mềm miễn phí)" }, { label: "Vỏ máy", value: "Như mới" },
     ],
-    included: ["Que đo x2", "Dây nguồn"], notIncluded: ["Túi đựng"],
-    unavailableDays: [5, 6, 7, 20, 21], splitSenior: 60, splitPlatform: 40, earnedSoFar: 756000,
+    included: ["Dây đo x2", "Cáp USB"], notIncluded: ["Túi đựng"],
+    unavailableDays: [5, 6, 7, 20, 21], splitSenior: 60, splitPlatform: 40, earnedSoFar: 90000,
   },
   {
-    id: "p2", name: "Function Generator FY6900", category: "do-luong", price: 60000,
-    marketValue: 3500000, grade: "A", seniorName: "Đức Anh (K66)", rating: 4.8, rentedCount: 9,
-    sealCode: "LS-0201", appraisedDate: "03/08/2026", lastTestedDate: "11/08/2026",
-    desc: "Máy phát xung đa dạng sóng, dùng kiểm tra mạch tương tự/số cho bài lab.",
+    id: "p2", name: "Đồng hồ vạn năng Uni-T", category: "do-luong", price: 15000,
+    marketValue: 450000, grade: "B", seniorName: "Thu Trang (K65)", rating: 4.6, rentedCount: 12,
+    sealCode: "LS-0253", appraisedDate: "03/08/2026", lastTestedDate: "11/08/2026",
+    priceNew: 450000, priceConsignment: 300000, quantity: 2, inventoryStatus: "reserve",
+    desc: "Đồng hồ vạn năng Uni-T (DMM) đo V/A/Ω, có đèn nền — dụng cụ đo cơ bản cho mọi bài lab.",
     specs: [
-      { label: "Dải tần", value: "0–60MHz" }, { label: "Dạng sóng", value: "Sin/Vuông/Tam giác/Xung" },
+      { label: "Loại", value: "Đồng hồ vạn năng kỹ thuật số" }, { label: "Chức năng", value: "V / A / Ω / diode" },
       { label: "Màn hình", value: "Không lỗi điểm ảnh" }, { label: "Vỏ máy", value: "Như mới" },
     ],
-    included: ["Dây BNC x1"], notIncluded: ["Que đo"],
-    unavailableDays: [1, 2, 12, 13, 14], splitSenior: 60, splitPlatform: 40, earnedSoFar: 324000,
+    included: ["Que đo x2", "Pin 9V"], notIncluded: ["Túi đựng"],
+    unavailableDays: [1, 2, 15, 16], splitSenior: 50, splitPlatform: 50, earnedSoFar: 90000,
   },
   {
     id: "p3", name: "Nguồn tổ ong DC 30V/5A", category: "do-luong", price: 35000,
@@ -159,21 +161,23 @@ const SEED_PRODUCTS = [
     unavailableDays: [8, 9], splitSenior: 60, splitPlatform: 40, earnedSoFar: 212500,
   },
   {
-    id: "p5", name: "Kit STM32F103C8T6 (Blue Pill)", category: "vi-dieu-khien", price: 20000,
-    marketValue: 450000, grade: "B", seniorName: CURRENT_USER, rating: 4.5, rentedCount: 6,
-    sealCode: "LS-0225", appraisedDate: "07/08/2026", lastTestedDate: "13/08/2026",
-    desc: "Board STM32 phổ biến cho môn Vi xử lý, kèm mạch nạp sẵn.",
+    id: "p5", name: "STM32F407 Discovery", category: "vi-dieu-khien", price: 20000,
+    marketValue: 750000, grade: "A", seniorName: CURRENT_USER, rating: 4.7, rentedCount: 9,
+    sealCode: "LS-0252", appraisedDate: "07/08/2026", lastTestedDate: "13/08/2026",
+    priceNew: 750000, priceConsignment: 490000, quantity: 1, inventoryStatus: "sold",
+    desc: "Board STM32F407 Discovery kèm ST-Link on-board — đủ mạnh cho project DSP/nhúng nâng cao.",
     specs: [
-      { label: "Vi điều khiển", value: "STM32F103C8T6" }, { label: "Mạch nạp", value: "ST-Link V2 kèm theo" },
-      { label: "Chân cắm", value: "2 chân hơi lỏng" }, { label: "Bo mạch", value: "Không cong vênh" },
+      { label: "Vi điều khiển", value: "STM32F407VGT6" }, { label: "Mạch nạp", value: "ST-Link on-board" },
+      { label: "Chân cắm", value: "Đầy đủ, đẹp" }, { label: "Bo mạch", value: "Không cong vênh" },
     ],
-    included: ["Mạch nạp ST-Link", "Dây dupont"], notIncluded: [],
-    unavailableDays: [14, 15, 16], splitSenior: 50, splitPlatform: 50, earnedSoFar: 60000,
+    included: ["Dây USB"], notIncluded: [],
+    unavailableDays: [14, 15, 16], splitSenior: 50, splitPlatform: 50, earnedSoFar: 90000,
   },
   {
     id: "p6", name: "Raspberry Pi 4 Model B (4GB)", category: "vi-dieu-khien", price: 40000,
     marketValue: 1800000, grade: "A", seniorName: "Thu Trang (K65)", rating: 4.8, rentedCount: 11,
      sealCode: "LS-0219", appraisedDate: "06/08/2026", lastTestedDate: "12/08/2026",
+    priceNew: 2500000, priceConsignment: 1800000, quantity: 2, inventoryStatus: "available",
     desc: "Máy tính nhúng cho đồ án IoT/server mini, đã cài sẵn Raspbian.",
     specs: [
       { label: "RAM", value: "4GB" }, { label: "Thẻ nhớ", value: "32GB kèm hệ điều hành" },
@@ -186,6 +190,7 @@ const SEED_PRODUCTS = [
     id: "p7", name: "Kit PLC Mini Siemens LOGO!", category: "plc", price: 70000,
     marketValue: 4500000, grade: "A", seniorName: "Đức Anh (K66)", rating: 4.7, rentedCount: 5,
     sealCode: "LS-0233", appraisedDate: "09/08/2026", lastTestedDate: "13/08/2026",
+    priceNew: 1500000, priceConsignment: 1000000, quantity: 2, inventoryStatus: "available",
     desc: "Bộ PLC mini cho môn Tự động hoá và các đội thi Robocon.",
     specs: [
       { label: "Dòng PLC", value: "Siemens LOGO! 12/24RCE" }, { label: "Ngõ vào/ra", value: "8 vào / 4 ra" },
@@ -195,16 +200,17 @@ const SEED_PRODUCTS = [
     unavailableDays: [1, 2, 3, 18, 19], splitSenior: 60, splitPlatform: 40, earnedSoFar: 126000,
   },
   {
-    id: "p8", name: "Logic Analyzer 8-channel USB", category: "do-luong", price: 30000,
-    marketValue: 550000, grade: "B", seniorName: "Thu Trang (K65)", rating: 4.6, rentedCount: 8,
-    sealCode: "LS-0207", appraisedDate: "04/08/2026", lastTestedDate: "11/08/2026",
-    desc: "Dùng phân tích tín hiệu số cho đồ án nhúng/IoT, tương thích PulseView.",
+    id: "p8", name: "Kit Arduino Mega 2560", category: "vi-dieu-khien", price: 20000,
+    marketValue: 800000, grade: "B", seniorName: CURRENT_USER, rating: 4.6, rentedCount: 7,
+    sealCode: "LS-0254", appraisedDate: "04/08/2026", lastTestedDate: "11/08/2026",
+    priceNew: 800000, priceConsignment: 500000, quantity: 1, inventoryStatus: "returning",
+    desc: "Arduino Mega 2560 nhiều chân I/O, phù hợp project cần nhiều cảm biến/actuator cùng lúc.",
     specs: [
-      { label: "Số kênh", value: "8 kênh" }, { label: "Tốc độ lấy mẫu", value: "24MHz" },
-      { label: "Phần mềm", value: "PulseView (mã nguồn mở)" }, { label: "Vỏ máy", value: "Trầy nhẹ" },
+      { label: "Vi điều khiển", value: "ATmega2560" }, { label: "Chân I/O", value: "54 digital / 16 analog" },
+      { label: "Phần mềm", value: "Arduino IDE" }, { label: "Vỏ máy", value: "Trầy nhẹ" },
     ],
-    included: ["Cáp kẹp x8", "Cáp USB"], notIncluded: [],
-    unavailableDays: [6, 7], splitSenior: 50, splitPlatform: 50, earnedSoFar: 120000,
+    included: ["Cáp USB", "3 loại cảm biến cơ bản"], notIncluded: [],
+    unavailableDays: [6, 7], splitSenior: 50, splitPlatform: 50, earnedSoFar: 70000,
   },
 ];
 
@@ -232,7 +238,7 @@ const seedConsignments = [
 ];
 
 const seedBookings = [
-  { id: "b_seed1", renterName: "Hải Đăng (K68)", productId: "p1", start: "2026-08-18", end: "2026-08-20", nights: 2, total: 180000 + Math.round(9000000 * DEPOSIT_RATE) + INSURANCE_FEE, pickup: "ktx-b2", status: "pending", handoverStage: null },
+  { id: "b_seed1", renterName: "Hải Đăng (K68)", productId: "p1", start: "2026-08-18", end: "2026-08-20", nights: 2, total: 60000 + Math.round(1500000 * DEPOSIT_RATE) + INSURANCE_FEE, pickup: "ktx-b2", status: "pending", handoverStage: null },
   { id: "b_seed2", renterName: "Thu Hà (K67)", productId: "p6", start: "2026-08-10", end: "2026-08-12", nights: 2, total: 80000 + Math.round(1800000 * DEPOSIT_RATE) + INSURANCE_FEE, pickup: "c7", status: "confirmed", handoverStage: "picked_up" },
 ];
 

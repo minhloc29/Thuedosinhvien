@@ -32,6 +32,17 @@ model Category {
   emoji        String
   consignments Consignment[]
   products     Product[]
+  locations    Location[]
+}
+
+// Physical storage point for products — each Location belongs to a Category so
+// the admin Location View renders a Category → Location → products tree.
+model Location {
+  id         String   @id @default(cuid())
+  name       String
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+  products   Product[]
 }
 
 model PickupPoint {
@@ -84,6 +95,15 @@ model Product {
   earnedSoFar      Int      @default(0)
   status           String   @default("active") // active | retired
   unavailableDays  String   @default("[]") // JSON string number[]
+
+  // Inventory dashboard fields (admin) — separate from `status` above, which
+  // the public catalog filter relies on.
+  priceNew          Int       @default(0) // giá mới (retail, VND)
+  priceConsignment  Int       @default(0) // giá đồ cũ kí gửi (VND)
+  quantity          Int       @default(1) // units in stock
+  inventoryStatus   String    @default("available") // available | sold | reserve | returning
+  locationId        String?
+  location          Location? @relation(fields: [locationId], references: [id])
 
   consignment      Consignment?
   bookings         Booking[]

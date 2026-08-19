@@ -31,33 +31,24 @@ const PICKUP_POINTS = [
 // Match the frontend SEED_PRODUCTS (name, category, price, marketValue, grade).
 // Detail (specs/included/notIncluded/desc/unavailableDays) mirrors the frontend
 // SEED_PRODUCTS arrays so the API returns the same rich shape the UI already renders.
+// Stock keeping locations — each belongs to a Category so the admin Location
+// View renders a Category → Location → products tree.
+const SEED_LOCATIONS = [
+  { id: "ktx-b2", name: "KTX Bách Khoa – Nhà B2", categoryId: "do-luong" },
+  { id: "c7", name: "Sảnh nhà C7 – Bách Khoa", categoryId: "do-luong" },
+  { id: "ktx-b9", name: "KTX Bách Khoa – Nhà B9", categoryId: "vi-dieu-khien" },
+  { id: "ta-quang-buu", name: "Ngõ 42 Tạ Quang Bửu (CTV Minh)", categoryId: "vi-dieu-khien" },
+  { id: "me-tri", name: "KTX Mễ Trì – ĐHQGHN", categoryId: "plc" },
+];
+
+// New vs consignment prices: priceNew (giá mới) and priceConsignment (giá đồ
+// cũ kí gửi). quantity = units in stock; inventoryStatus drives the dashboard
+// Product Status donut (available | sold | reserve | returning). Every status
+// value must appear so all four donut slices render.
 const SEED_PRODUCTS = [
   {
-    name: "Oscilloscope Rigol DS1102Z-E", categoryId: "do-luong", pricePerDay: 90000, marketValue: 9000000, grade: "A", sealCode: "LS-0198", splitSeniorPct: 60, seniorKey: "ducanh", image: "/images/products/oscilloscope.jpg",
-    rating: 4.9, rentedCount: 18, earnedSoFar: 540000,
-    desc: "Máy hiện sóng số 2 kênh 100MHz, đã hiệu chuẩn, dùng tốt cho project đo đạc mạch điện tử.",
-    specs: [
-      { label: "Băng thông", value: "100 MHz" },
-      { label: "Số kênh", value: "2 kênh" },
-      { label: "Tốc độ lấy mẫu", value: "1 GSa/s" },
-      { label: "Màn hình", value: "7 inch TFT" },
-      { label: "Tình trạng", value: "Đã kiểm tra khi thẩm định" },
-    ],
-    included: ["Dây đo 2 kênh", "Dây nối đất", "Cáp nguồn", "Sách hướng dẫn"],
-    notIncluded: ["Bộ đổi nguồn adapter ngoài"],
-    unavailableDays: ["2026-08-20", "2026-08-21"],
-  },
-  {
-    name: "Function Generator FY6900", categoryId: "do-luong", pricePerDay: 60000, marketValue: 3500000, grade: "A", sealCode: "LS-0201", splitSeniorPct: 60, seniorKey: "ducanh", image: "/images/products/function-gen.jpg",
-    rating: 4.8, rentedCount: 12, earnedSoFar: 360000,
-    desc: "Máy phát hàm 2 kênh 60MHz, sinh sin/vuông/tam giác — ghép với oscilloscope để build project đo đạc.",
-    specs: [{ label: "Tần số tối đa", value: "60 MHz" }, { label: "Số kênh", value: "2 kênh" }, { label: "Dạng sóng", value: "Sin / Square / Triangle" }, { label: "Tình trạng", value: "Đã kiểm tra khi thẩm định" }],
-    included: ["Cáp BNC", "Cáp nguồn"],
-    notIncluded: [],
-    unavailableDays: [],
-  },
-  {
     name: "Nguồn tổ ong DC 30V/5A", categoryId: "do-luong", pricePerDay: 35000, marketValue: 1200000, grade: "B", sealCode: "LS-0155", splitSeniorPct: 50, seniorKey: "thutrang", image: "/images/products/power-supply.jpg",
+    priceNew: 1200000, priceConsignment: 900000, quantity: 3, inventoryStatus: "available", locationId: "ktx-b2",
     rating: 4.7, rentedCount: 22, earnedSoFar: 385000,
     desc: "Nguồn một chiều điều chỉnh 0–30V / 5A, hiển thị số, dùng để cấp nguồn cho mạch khi test.",
     specs: [{ label: "Điện áp", value: "0–30V" }, { label: "Dòng", value: "0–5A" }, { label: "Hiển thị", value: "LED số 2 line" }, { label: "Tình trạng", value: "Đã kiểm tra khi thẩm định" }],
@@ -67,6 +58,7 @@ const SEED_PRODUCTS = [
   },
   {
     name: "Kit Arduino Uno R3 + 10 cảm biến", categoryId: "vi-dieu-khien", pricePerDay: 25000, marketValue: 650000, grade: "A", sealCode: "LS-0212", splitSeniorPct: 60, seniorKey: "minhquan", image: "/images/products/arduino.jpg",
+    priceNew: 650000, priceConsignment: 450000, quantity: 5, inventoryStatus: "available", locationId: "ktx-b9",
     rating: 4.9, rentedCount: 35, earnedSoFar: 437000,
     desc: "Board Arduino Uno R3 chính hãng kèm 10 cảm biến thông dụng (DHT11, siêu âm, LDR, …) — đủ cho project IoT nhập môn.",
     specs: [{ label: "Vi điều khiển", value: "ATmega328P" }, { label: "Cảm biến kèm", value: "10 loại" }, { label: "Tình trạng", value: "Đã kiểm tra khi thẩm định" }],
@@ -75,16 +67,8 @@ const SEED_PRODUCTS = [
     unavailableDays: [],
   },
   {
-    name: "Kit STM32F103C8T6 (Blue Pill)", categoryId: "vi-dieu-khien", pricePerDay: 20000, marketValue: 450000, grade: "B", sealCode: "LS-0225", splitSeniorPct: 50, seniorKey: "minhquan", image: "/images/products/stm32.jpg",
-    rating: 4.7, rentedCount: 20, earnedSoFar: 200000,
-    desc: "Board Blue Pill STM32F103C8T6, lập trình bằng Arduino IDE, đủ tài nguyên cho project nhúng nâng cao.",
-    specs: [{ label: "Vi điều khiển", value: "STM32F103C8T6" }, { label: "Tần số", value: "72 MHz" }, { label: "Tình trạng", value: "Đã kiểm tra khi thẩm định" }],
-    included: ["ST-Link nạp", "Cáp USB"],
-    notIncluded: ["Breadboard"],
-    unavailableDays: [],
-  },
-  {
     name: "Raspberry Pi 4 Model B (4GB)", categoryId: "vi-dieu-khien", pricePerDay: 40000, marketValue: 1800000, grade: "A", sealCode: "LS-0219", splitSeniorPct: 60, seniorKey: "thutrang", image: "/images/products/raspberrypi.jpg",
+    priceNew: 2500000, priceConsignment: 1800000, quantity: 2, inventoryStatus: "available", locationId: "ta-quang-buu",
     rating: 4.8, rentedCount: 15, earnedSoFar: 300000,
     desc: "Raspberry Pi 4 4GB chạy ổn định, kèm nguồn + thẻ nhớ đã cài hệ điều hành — cho project IoT/machine learning edge.",
     specs: [{ label: "CPU", value: "BCM2711 4 nhân" }, { label: "RAM", value: "4 GB" }, { label: "Tình trạng", value: "Đã kiểm tra khi thẩm định" }],
@@ -94,6 +78,7 @@ const SEED_PRODUCTS = [
   },
   {
     name: "Kit PLC Mini Siemens LOGO!", categoryId: "plc", pricePerDay: 70000, marketValue: 4500000, grade: "A", sealCode: "LS-0233", splitSeniorPct: 60, seniorKey: "ducanh", image: "/images/products/plc.jpg",
+    priceNew: 1500000, priceConsignment: 1000000, quantity: 2, inventoryStatus: "available", locationId: "me-tri",
     rating: 4.9, rentedCount: 8, earnedSoFar: 280000,
     desc: "PLC Siemens LOGO! 8DI/4DO, kèm cáp lập trình + mô phỏng — cho project tự động hoá mini.",
     specs: [{ label: "Hãng", value: "Siemens" }, { label: "Ngõ vào/ra", value: "8DI / 4DO" }, { label: "Tình trạng", value: "Đã kiểm tra khi thẩm định" }],
@@ -102,14 +87,59 @@ const SEED_PRODUCTS = [
     unavailableDays: [],
   },
   {
-    name: "Logic Analyzer 8-channel USB", categoryId: "do-luong", pricePerDay: 30000, marketValue: 550000, grade: "B", sealCode: "LS-0207", splitSeniorPct: 50, seniorKey: "thutrang", image: "/images/products/logic-analyzer.jpg",
-    rating: 4.6, rentedCount: 14, earnedSoFar: 210000,
-    desc: "Logic analyzer 8 kênh USB, phần mềm Saleae — bắt tín hiệu nối tiếp UART/I2C/SPI khi debug firmware.",
-    specs: [{ label: "Số kênh", value: "8" }, { label: "Kết nối", value: "USB (Saleae)" }, { label: "Tình trạng", value: "Đã kiểm tra khi thẩm định" }],
-    included: ["Dây cắm 8 kênh"],
-    notIncluded: ["Software (download miễn phí)"],
+    name: "Oscilloscope Hantek 6022BE", categoryId: "do-luong", pricePerDay: 30000, marketValue: 1500000, grade: "A", sealCode: "LS-0251", splitSeniorPct: 60, seniorKey: "ducanh",
+    priceNew: 1500000, priceConsignment: 1000000, quantity: 2, inventoryStatus: "available", locationId: "c7",
+    rating: 4.8, rentedCount: 6, earnedSoFar: 90000,
+    desc: "Máy hiện sóng Hantek 6022BE 2 kênh 20MHz qua USB — ghép laptop để đo mạch khi không cần máy hiện sóng đứng riêng.",
+    specs: [{ label: "Băng thông", value: "20 MHz" }, { label: "Số kênh", value: "2 kênh" }, { label: "Kết nối", value: "USB (phần mềm miễn phí)" }, { label: "Tình trạng", value: "Đã kiểm tra khi thẩm định" }],
+    included: ["Dây đo 2 kênh", "Cáp USB"],
+    notIncluded: ["Túi đựng"],
     unavailableDays: [],
   },
+  {
+    name: "STM32F407 Discovery", categoryId: "vi-dieu-khien", pricePerDay: 20000, marketValue: 750000, grade: "A", sealCode: "LS-0252", splitSeniorPct: 50, seniorKey: "minhquan",
+    priceNew: 750000, priceConsignment: 490000, quantity: 1, inventoryStatus: "sold", locationId: "ktx-b9",
+    rating: 4.7, rentedCount: 9, earnedSoFar: 90000,
+    desc: "Board STM32F407 Discovery kèm ST-Link on-board — đủ mạnh cho project DSP/nhúng nâng cao.",
+    specs: [{ label: "Vi điều khiển", value: "STM32F407VGT6" }, { label: "Mạch nạp", value: "ST-Link on-board" }, { label: "Tình trạng", value: "Đã kiểm tra khi thẩm định" }],
+    included: ["Dây USB"],
+    notIncluded: ["Cảm biến ngoại vi"],
+    unavailableDays: [],
+  },
+  {
+    name: "Đồng hồ vạn năng Uni-T", categoryId: "do-luong", pricePerDay: 15000, marketValue: 450000, grade: "B", sealCode: "LS-0253", splitSeniorPct: 50, seniorKey: "thutrang",
+    priceNew: 450000, priceConsignment: 300000, quantity: 2, inventoryStatus: "reserve", locationId: "c7",
+    rating: 4.6, rentedCount: 12, earnedSoFar: 90000,
+    desc: "Đồng hồ vạn năng Uni-T (DMM) đo V/A/Ω, có đèn nền — dụng cụ đo cơ bản cho mọi bài lab.",
+    specs: [{ label: "Loại", value: "Đồng hồ vạn năng kỹ thuật số" }, { label: "Chức năng", value: "V / A / Ω / diode" }, { label: "Tình trạng", value: "Đã kiểm tra khi thẩm định" }],
+    included: ["Que đo x2", "Pin 9V"],
+    notIncluded: ["Túi đựng"],
+    unavailableDays: [],
+  },
+  {
+    name: "Kit Arduino Mega 2560", categoryId: "vi-dieu-khien", pricePerDay: 20000, marketValue: 800000, grade: "B", sealCode: "LS-0254", splitSeniorPct: 50, seniorKey: "minhquan",
+    priceNew: 800000, priceConsignment: 500000, quantity: 1, inventoryStatus: "returning", locationId: "ta-quang-buu",
+    rating: 4.6, rentedCount: 7, earnedSoFar: 70000,
+    desc: "Arduino Mega 2560 nhiều chân I/O, phù hợp project cần nhiều cảm biến/actuator cùng lúc.",
+    specs: [{ label: "Vi điều khiển", value: "ATmega2560" }, { label: "Chân I/O", value: "54 digital / 16 analog" }, { label: "Tình trạng", value: "Đã kiểm tra khi thẩm định" }],
+    included: ["Cáp USB", "3 loại cảm biến cơ bản"],
+    notIncluded: ["Breadboard"],
+    unavailableDays: [],
+  },
+];
+
+// Historical revenue so the admin Revenue-by-month bar chart + Total Revenue
+// card are non-zero on a fresh DB (a real ledger is only ever written by the
+// admin /bookings/:id/return flow, which a fresh seed never triggers).
+const SEED_LEDGER = [
+  { type: "rental_revenue", amount: 150000, at: "2026-02-10" },
+  { type: "rental_revenue", amount: 320000, at: "2026-03-15" },
+  { type: "rental_revenue", amount: 180000, at: "2026-04-08" },
+  { type: "rental_revenue", amount: 400000, at: "2026-05-20" },
+  { type: "rental_revenue", amount: 260000, at: "2026-06-12" },
+  { type: "rental_revenue", amount: 350000, at: "2026-07-18" },
+  { type: "rental_revenue", amount: 290000, at: "2026-08-05" },
+  { type: "liquidation", amount: 1490000, at: "2026-07-25", note: "Thanh lý thiết bị đã bán" },
 ];
 
 // Pending consignments (matching frontend seedConsignments).
@@ -129,6 +159,9 @@ async function main() {
   // Pickup points
   for (const p of PICKUP_POINTS) await prisma.pickupPoint.upsert({ where: { id: p.id }, update: {}, create: p });
 
+  // Stock-keeping locations (dashboard Location View hierarchy).
+  for (const L of SEED_LOCATIONS) await prisma.location.upsert({ where: { id: L.id }, update: { name: L.name, categoryId: L.categoryId }, create: L });
+
   // Users (password: "password123" for all)
   const pass = await bcrypt.hash("password123", 10);
   const users = {
@@ -144,13 +177,15 @@ async function main() {
     const senior = users[p.seniorKey];
     await prisma.product.upsert({
       where: { sealCode: p.sealCode },
-      update: { image: p.image },
+      update: { image: p.image, priceNew: p.priceNew, priceConsignment: p.priceConsignment, quantity: p.quantity, inventoryStatus: p.inventoryStatus, locationId: p.locationId },
       create: {
         name: p.name, categoryId: p.categoryId, pricePerDay: p.pricePerDay, marketValue: p.marketValue,
         grade: p.grade, sealCode: p.sealCode, seniorId: senior.id, splitSeniorPct: p.splitSeniorPct,
         splitPlatformPct: 100 - p.splitSeniorPct, rating: p.rating ?? 4.8, rentedCount: p.rentedCount ?? 0,
         earnedSoFar: p.earnedSoFar ?? 0, desc: p.desc,
         image: p.image,
+        priceNew: p.priceNew, priceConsignment: p.priceConsignment, quantity: p.quantity,
+        inventoryStatus: p.inventoryStatus, locationId: p.locationId,
         specs: JSON.stringify(p.specs), included: JSON.stringify(p.included),
         notIncluded: JSON.stringify(p.notIncluded), unavailableDays: JSON.stringify(p.unavailableDays ?? []),
         appraisedAt: d("2026-08-05"), lastTestedAt: d("2026-08-12"),
@@ -167,7 +202,7 @@ async function main() {
   }
 
   // Sample bookings (2, matching frontend seedBookings)
-  const osc = await prisma.product.findUnique({ where: { sealCode: "LS-0198" } });
+  const osc = await prisma.product.findUnique({ where: { sealCode: "LS-0251" } });
   const rpi = await prisma.product.findUnique({ where: { sealCode: "LS-0219" } });
   if (osc) {
     const weeks = 1, deposit = Math.round(osc.marketValue * DEPOSIT_RATE);
@@ -179,6 +214,14 @@ async function main() {
     const weeks = 1, deposit = Math.round(rpi.marketValue * DEPOSIT_RATE);
     await prisma.booking.create({
       data: { productId: rpi.id, renterId: users.thutrang.id, pickupPointId: "c7", startDate: d("2026-08-10"), endDate: d("2026-08-17"), nights: weeks * 7, weeks, rentalCost: weeks * rpi.pricePerDay, deposit, insuranceFee: INSURANCE_FEE, total: weeks * rpi.pricePerDay + deposit + INSURANCE_FEE, status: "confirmed", handoverAt: d("2026-08-10") },
+    });
+  }
+
+  // Historical ledger (rental revenue + one liquidation) so the admin dashboard's
+  // Revenue-by-month bar chart and Total Revenue card are non-zero on a fresh DB.
+  for (const e of SEED_LEDGER) {
+    await prisma.ledgerEntry.create({
+      data: { type: e.type, amount: e.amount, note: e.note || null, createdAt: d(e.at) },
     });
   }
 

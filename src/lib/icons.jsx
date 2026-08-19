@@ -34,6 +34,7 @@ export const Star            = wrap(M.Star);
 export const StarBorder      = wrap(M.StarBorder);
 export const ClipboardCheck  = wrap(M.AssignmentTurnedIn);
 export const BarChart3       = wrap(M.BarChart);
+export const LayoutDashboard = wrap(M.SpaceDashboard);
 export const Timer           = wrap(M.Schedule);
 export const Sparkles        = wrap(M.AutoAwesome);
 export const Boxes           = wrap(M.Inventory);
